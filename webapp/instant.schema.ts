@@ -16,6 +16,7 @@ const _schema = i.schema({
     }),
     inviteLink: i.entity({
       code: i.string().unique().indexed(),
+      createdAt: i.number().optional(),
       fulfilledAt: i.date().optional(),
     }),
     profileComments: i.entity({

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Send, CheckCircle, Clock, User } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { id } from '@instantdb/react';
 import { useState } from 'react';
 import {
@@ -22,6 +23,7 @@ import {
 
 function CommunityContent() {
     const { user } = db.useAuth();
+    const router = useRouter();
     const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
 
     const { data, isLoading } = db.useQuery({
@@ -46,7 +48,7 @@ function CommunityContent() {
 
     // Users with linked profiles
     const linkedUsers = allUsers.filter((u: any) => u.odfProfile && u.odfProfile.length > 0);
-    
+
     // Profiles without linked users (people we want to invite)
     const unlinkedProfiles = allProfiles.filter((p: any) => !p.linkedUser || p.linkedUser.length === 0);
 
@@ -61,7 +63,7 @@ function CommunityContent() {
     // Check if profile has been invited
     const hasBeenInvited = (profileId: string) => {
         // Check if there's an invite for this profile
-        return allInvites.some((invite: any) => 
+        return allInvites.some((invite: any) =>
             invite.invitees?.some((invitee: any) => invitee.id === profileId) && !invite.fulfilledAt
         );
     };
@@ -72,16 +74,17 @@ function CommunityContent() {
             alert("You need a profile to send invites!");
             return;
         }
-        
+
         setInvitingUserId(null);
 
         // Create new invite link with a unique code
         const newInviteId = id();
         const inviteCode = `invite-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        
+
         await db.transact([
             db.tx.inviteLink[newInviteId].update({
-                code: inviteCode
+                code: inviteCode,
+                createdAt: Date.now()
             }),
             db.tx.inviteLink[newInviteId].link({
                 inviter: currentUserProfile.id,
@@ -89,9 +92,8 @@ function CommunityContent() {
             })
         ]);
 
-        // In a real app, you would send this invite link to the person
-        console.log(`Invite link created for ${targetProfile.name}: /join/${inviteCode}`);
-        alert(`Invite link created for ${targetProfile.name}! Share this link: /join/${inviteCode}`);
+        // Navigate to the invite page
+        router.push(`/invites/${newInviteId}`);
     };
 
     const getInitials = (email: string) => {
@@ -133,15 +135,15 @@ function CommunityContent() {
                                     <CardHeader className="pb-4">
                                         <div className="flex items-start space-x-4">
                                             <Avatar className="h-12 w-12">
-                                                <AvatarImage 
-                                                    src={profile.profilePicUrl} 
+                                                <AvatarImage
+                                                    src={profile.profilePicUrl}
                                                     alt={profile.name}
                                                 />
                                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                                                     {getInitials(profile.name)}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0 max-w-[240px] overflow-hidden">
                                                 <h3 className="font-semibold text-lg truncate">{profile.name}</h3>
                                                 {profile.tagline && (
                                                     <p className="text-sm text-gray-600 truncate">{profile.tagline}</p>
@@ -182,21 +184,21 @@ function CommunityContent() {
                                 .join('')
                                 .toUpperCase()
                                 .slice(0, 2);
-                            
+
                             return (
                                 <Card key={profile.id} className="hover:shadow-lg transition-all duration-200 bg-orange-50">
                                     <CardHeader className="pb-4">
                                         <div className="flex items-start space-x-4">
                                             <Avatar className="h-12 w-12">
-                                                <AvatarImage 
-                                                    src={profile.profilePicUrl} 
+                                                <AvatarImage
+                                                    src={profile.profilePicUrl}
                                                     alt={profile.name}
                                                 />
                                                 <AvatarFallback className="bg-orange-400 text-white">
                                                     {initials}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0 max-w-[200px] overflow-hidden">
                                                 <h3 className="font-semibold text-lg truncate">
                                                     {profile.name}
                                                 </h3>
@@ -216,7 +218,7 @@ function CommunityContent() {
                                                 </p>
                                             </div>
                                         ) : (
-                                            <Button 
+                                            <Button
                                                 onClick={() => {
                                                     setInvitingUserId(profile.id);
                                                 }}
