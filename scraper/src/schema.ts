@@ -7,6 +7,7 @@ export const profiles = sqliteTable("profiles", {
     tagline: text("tagline"),
     profileText: text("profile_text"),
     profileRawHtml: text("profile_raw_html"),
+    profilePicUrl: text("profile_pic_url"),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
         .notNull()
         .default(sql`(strftime('%s','now') * 1000)`)
