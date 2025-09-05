@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/admin";
+import { i } from "@instantdb/react";
 
 const _schema = i.schema({
   // We inferred 1 attribute!
@@ -58,6 +58,18 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "comments",
+      },
+    },
+    profilesLinkedUser: {
+      forward: {
+        on: "profiles",
+        has: "one",
+        label: "linkedUser",
+      },
+      reverse: {
+        on: "$users",
+        has: "one",
+        label: "odfProfile",
       },
     },
   },
