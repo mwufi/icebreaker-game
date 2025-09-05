@@ -20,6 +20,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ProfileCard } from '@/components/profile/ProfileCard';
+import { CommentsList } from '@/components/profile/CommentsList';
 
 function ProfileContent() {
     const { user } = db.useAuth();
@@ -111,15 +113,6 @@ function ProfileContent() {
     }
 
     if (linkedProfile) {
-        const getInitials = (name: string) => {
-            return name
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2);
-        };
-
         return (
             <>
 
@@ -139,64 +132,9 @@ function ProfileContent() {
                         </Button>
                     </div>
 
-                    <Card className="overflow-hidden border-gray-200">
-                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8">
-                            <div className="flex items-start space-x-6">
-                                <Avatar className="h-32 w-32 ring-4 ring-white shadow-xl">
-                                    <AvatarImage
-                                        src={linkedProfile.profilePicUrl}
-                                        alt={linkedProfile.name}
-                                    />
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-bold">
-                                        {getInitials(linkedProfile.name)}
-                                    </AvatarFallback>
-                                </Avatar>
+                    <ProfileCard profile={linkedProfile} />
 
-                                <div className="flex-1">
-                                    <h2 className="text-3xl font-bold text-gray-900">{linkedProfile.name}</h2>
-                                    {linkedProfile.tagline && (
-                                        <p className="text-lg text-gray-600 mt-2">{linkedProfile.tagline}</p>
-                                    )}
-                                    {linkedProfile.profileText && (
-                                        <div className="mt-4 text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                            {linkedProfile.profileText}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-
-                    {linkedProfile.comments && linkedProfile.comments.length > 0 && (
-                        <div>
-                            <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                                <MessageCircle className="h-6 w-6 text-blue-600" />
-                                Comments ({linkedProfile.comments.length})
-                            </h3>
-                            <div className="space-y-4">
-                                {linkedProfile.comments.map((comment: any) => (
-                                    <Card key={comment.id} className="border-gray-200">
-                                        <CardContent className="pt-6">
-                                            <div className="flex items-start space-x-3">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center space-x-2 mb-2">
-                                                        <span className="font-semibold text-gray-900">{comment.authorName || 'Anonymous'}</span>
-                                                        <span className="text-gray-500 text-sm">• {comment.dateText}</span>
-                                                    </div>
-                                                    <div className="text-gray-700 leading-relaxed">{comment.bodyText}</div>
-                                                    {comment.likes > 0 && (
-                                                        <div className="mt-3 text-sm text-gray-600 font-medium">
-                                                            ❤️ {comment.likes} like{comment.likes !== 1 ? 's' : ''}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <CommentsList comments={linkedProfile.comments || []} />
                 </div>
 
                 <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) => setConfirmDialog({ isOpen: open })}>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Search, User, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 interface Profile {
     id: string;
@@ -86,9 +87,11 @@ export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink 
                                 </Avatar>
                                 
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {profile.name}
-                                    </h3>
+                                    <Link href={`/profiles/${profile.id}`} className="hover:underline">
+                                        <h3 className="font-semibold text-lg text-gray-900 truncate">
+                                            {profile.name}
+                                        </h3>
+                                    </Link>
                                     {profile.tagline && (
                                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                                             {profile.tagline}
