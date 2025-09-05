@@ -11,7 +11,7 @@ function corsHeaders(req: Request, extras: HeadersInit = {}) {
     const acrh = req.headers.get("access-control-request-headers"); // e.g. "content-type, sentry-trace, baggage"
 
     h.set("Access-Control-Allow-Origin", origin);
-    h.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    h.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PATCH");
     h.set("Access-Control-Allow-Headers", acrh || "Content-Type, Authorization, sentry-trace, baggage");
     h.set("Access-Control-Max-Age", "86400");
     // so caches don’t mix responses with different allow lists
@@ -19,6 +19,40 @@ function corsHeaders(req: Request, extras: HeadersInit = {}) {
     h.append("Vary", "Access-Control-Request-Headers");
 
     return h;
+}
+
+// PATCH /profiles/:name/pic
+async function handlePatchProfilePic(req: Request) {
+    const headers = { "Content-Type": "application/json" };
+    type Payload = { name?: string; profilePicUrl?: string };
+
+    let body: Payload;
+    try {
+        body = await req.json();
+    } catch {
+        return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers });
+    }
+
+    const name = body?.name?.trim();
+    const url = body?.profilePicUrl?.trim();
+    if (!name || !url) {
+        return new Response(JSON.stringify({ error: "`name` and `profilePicUrl` are required" }), {
+            status: 400, headers
+        });
+    }
+
+    // find profile by name
+    const rows = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.name, name));
+    if (rows.length === 0) {
+        return new Response(JSON.stringify({ error: "Profile not found for given name" }), {
+            status: 404, headers
+        });
+    }
+
+    await db.update(profiles).set({ profilePicUrl: url }).where(eq(profiles.id, rows[0].id));
+    return new Response(JSON.stringify({ ok: true, profileId: rows[0].id }), {
+        status: 200, headers
+    });
 }
 
 async function handlePostProfiles(req: Request) {
@@ -153,6 +187,14 @@ Bun.serve({
 
         if (url.pathname === "/profiles" && req.method === "POST") {
             return handlePostProfiles(req);
+        }
+
+        if (url.pathname === "/profiles" && req.method === "PATCH") {
+            const res = await handlePatchProfilePic(req);
+            return new Response(await res.text(), {
+                status: res.status,
+                headers: corsHeaders(req, Object.fromEntries(res.headers)),
+            });
         }
 
         if (url.pathname === "/profiles" && req.method === "GET") {
