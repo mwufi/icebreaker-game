@@ -47,17 +47,26 @@ function CommunityContent() {
     // Users with linked profiles
     const linkedUsers = allUsers.filter((u: any) => u.odfProfile && u.odfProfile.length > 0);
     
-    // Users without linked profiles (need invites)
-    const unlinkedUsers = allUsers.filter((u: any) => !u.odfProfile || u.odfProfile.length === 0);
+    // Profiles without linked users (people we want to invite)
+    const unlinkedProfiles = allProfiles.filter((p: any) => !p.linkedUser || p.linkedUser.length === 0);
 
-    // Check if user has been invited
-    const hasBeenInvited = (userEmail: string) => {
-        // For now, we'll track invites by checking if there's an unfulfilled invite
-        // In a real app, you might want to track intended recipients differently
-        return allInvites.some((invite: any) => !invite.fulfilledAt);
+    console.log('Community page data:', {
+        totalUsers: allUsers.length,
+        linkedUsers: linkedUsers.length,
+        totalProfiles: allProfiles.length,
+        unlinkedProfiles: unlinkedProfiles.length,
+        allProfiles
+    });
+
+    // Check if profile has been invited
+    const hasBeenInvited = (profileId: string) => {
+        // Check if there's an invite for this profile
+        return allInvites.some((invite: any) => 
+            invite.invitees?.some((invitee: any) => invitee.id === profileId) && !invite.fulfilledAt
+        );
     };
 
-    const handleInvite = async (targetUserEmail: string) => {
+    const handleInvite = async (targetProfile: any) => {
         const currentUserProfile = linkedUsers.find((u: any) => u.id === user?.id)?.odfProfile?.[0];
         if (!currentUserProfile) {
             alert("You need a profile to send invites!");
@@ -68,20 +77,21 @@ function CommunityContent() {
 
         // Create new invite link with a unique code
         const newInviteId = id();
-        const inviteCode = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const inviteCode = `invite-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         
         await db.transact([
             db.tx.inviteLink[newInviteId].update({
                 code: inviteCode
             }),
             db.tx.inviteLink[newInviteId].link({
-                inviter: currentUserProfile.id
+                inviter: currentUserProfile.id,
+                invitees: targetProfile.id
             })
         ]);
 
-        // In a real app, you would send this invite link to the user's email
-        console.log(`Invite link created for ${targetUserEmail}: /join/${inviteCode}`);
-        alert(`Invite link created! Share this link: /join/${inviteCode}`);
+        // In a real app, you would send this invite link to the person
+        console.log(`Invite link created for ${targetProfile.name}: /join/${inviteCode}`);
+        alert(`Invite link created for ${targetProfile.name}! Share this link: /join/${inviteCode}`);
     };
 
     const getInitials = (email: string) => {
@@ -156,30 +166,44 @@ function CommunityContent() {
                 </div>
             )}
 
-            {/* Users without profiles */}
-            {unlinkedUsers.length > 0 && (
+            {/* Profiles without users (people to invite) */}
+            {unlinkedProfiles.length > 0 && (
                 <div>
                     <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                        <Clock className="h-6 w-6 text-orange-600" />
-                        Pending Members ({unlinkedUsers.length})
+                        <User className="h-6 w-6 text-orange-600" />
+                        People to Invite ({unlinkedProfiles.length})
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {unlinkedUsers.map((user: any) => {
-                            const hasPendingInvite = hasBeenInvited(user.email);
+                        {unlinkedProfiles.map((profile: any) => {
+                            const hasPendingInvite = hasBeenInvited(profile.id);
+                            const initials = profile.name
+                                .split(' ')
+                                .map((n: string) => n[0])
+                                .join('')
+                                .toUpperCase()
+                                .slice(0, 2);
+                            
                             return (
-                                <Card key={user.id} className="hover:shadow-lg transition-all duration-200 bg-gray-50">
+                                <Card key={profile.id} className="hover:shadow-lg transition-all duration-200 bg-orange-50">
                                     <CardHeader className="pb-4">
                                         <div className="flex items-start space-x-4">
                                             <Avatar className="h-12 w-12">
-                                                <AvatarFallback className="bg-gray-400">
-                                                    <User className="h-6 w-6 text-white" />
+                                                <AvatarImage 
+                                                    src={profile.profilePicUrl} 
+                                                    alt={profile.name}
+                                                />
+                                                <AvatarFallback className="bg-orange-400 text-white">
+                                                    {initials}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-lg truncate text-gray-600">
-                                                    No profile yet
+                                                <h3 className="font-semibold text-lg truncate">
+                                                    {profile.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                                {profile.tagline && (
+                                                    <p className="text-sm text-gray-600 truncate">{profile.tagline}</p>
+                                                )}
+                                                <p className="text-xs text-orange-600 mt-1">Not signed up yet</p>
                                             </div>
                                         </div>
                                     </CardHeader>
@@ -188,15 +212,15 @@ function CommunityContent() {
                                             <div className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md">
                                                 <p className="font-medium text-yellow-800">Invite sent!</p>
                                                 <p className="text-yellow-700 text-xs mt-1">
-                                                    Waiting for them to create a profile
+                                                    Waiting for them to sign up
                                                 </p>
                                             </div>
                                         ) : (
                                             <Button 
                                                 onClick={() => {
-                                                    setInvitingUserId(user.id);
+                                                    setInvitingUserId(profile.id);
                                                 }}
-                                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                                                className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                                             >
                                                 <Send className="h-4 w-4 mr-2" />
                                                 Send Invite
@@ -221,9 +245,9 @@ function CommunityContent() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={() => {
-                            const userToInvite = unlinkedUsers.find((u: any) => u.id === invitingUserId);
-                            if (userToInvite) {
-                                handleInvite(userToInvite.email);
+                            const profileToInvite = unlinkedProfiles.find((p: any) => p.id === invitingUserId);
+                            if (profileToInvite) {
+                                handleInvite(profileToInvite);
                             }
                         }}>
                             Send Invite
