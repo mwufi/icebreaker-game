@@ -3,7 +3,6 @@
 import { SignedIn, SignedOut } from '@clerk/nextjs';
 import { AvatarPopover } from '@/components/auth/AvatarPopover';
 import { SignInLink } from '@/components/auth/SignInLink';
-import Link from 'next/link';
 
 export function Navigation() {
     return (
@@ -15,18 +14,6 @@ export function Navigation() {
 
                 <div className="flex items-center gap-4">
                     <SignedIn>
-                        <Link 
-                            href="/community" 
-                            className="text-gray-600 hover:text-gray-900 transition-colors"
-                        >
-                            Community
-                        </Link>
-                        <Link 
-                            href="/profile" 
-                            className="text-gray-600 hover:text-gray-900 transition-colors"
-                        >
-                            Profile
-                        </Link>
                         <AvatarPopover />
                     </SignedIn>
                     <SignedOut>

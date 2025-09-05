@@ -3,15 +3,19 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { ClerkSignOutButton } from './ClerkSignOutButton';
+import Link from 'next/link';
 
 export function AvatarPopover() {
     const [isOpen, setIsOpen] = useState(false);
     const { user } = useUser();
 
     const menuItems = [
-        { label: 'View Profile', icon: '👤', onClick: () => setIsOpen(false) },
-        { label: 'Community', icon: '💬', onClick: () => setIsOpen(false) },
-        { label: 'Report a Bug', icon: '🐛', onClick: () => setIsOpen(false) },
+        { label: 'View Profile', icon: '👤', href: '/profile' },
+        { label: 'Community', icon: '💬', href: '/community' },
+        { label: 'Report a Bug', icon: '🐛', href: null, onClick: () => {
+            window.open('https://github.com/your-repo/issues', '_blank');
+            setIsOpen(false);
+        }},
     ];
 
     return (
@@ -36,14 +40,26 @@ export function AvatarPopover() {
                     {/* Menu */}
                     <div className="absolute right-0 top-10 z-20 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                         {menuItems.map((item, index) => (
-                            <button
-                                key={index}
-                                onClick={item.onClick}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
-                            >
-                                <span className="text-base">{item.icon}</span>
-                                {item.label}
-                            </button>
+                            item.href ? (
+                                <Link
+                                    key={index}
+                                    href={item.href}
+                                    onClick={() => setIsOpen(false)}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700 block"
+                                >
+                                    <span className="text-base">{item.icon}</span>
+                                    {item.label}
+                                </Link>
+                            ) : (
+                                <button
+                                    key={index}
+                                    onClick={item.onClick}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
+                                >
+                                    <span className="text-base">{item.icon}</span>
+                                    {item.label}
+                                </button>
+                            )
                         ))}
                         <ClerkSignOutButton />
                     </div>
