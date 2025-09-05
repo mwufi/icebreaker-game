@@ -1,6 +1,7 @@
 // src/server.ts
 import { db } from "./db";
 import { profiles, comments } from "./schema";
+import { eq } from "drizzle-orm";
 
 const PORT = 3000;
 
@@ -26,6 +27,7 @@ async function handlePostProfiles(req: Request) {
         tagline?: string | null;
         profileText?: string | null;
         profileRawHtml?: string | null;
+        force?: boolean;
         comments?: Array<{
             authorName?: string | null;
             authorTagline?: string | null;
@@ -58,16 +60,54 @@ async function handlePostProfiles(req: Request) {
     }
 
     try {
-        const [{ id: profileId }] = await db
-            .insert(profiles)
-            .values({
-                name: payload.name,
-                tagline: payload.tagline ?? null,
-                profileText: payload.profileText ?? null,
-                profileRawHtml: payload.profileRawHtml ?? null,
-            })
-            .returning({ id: profiles.id });
+        // Check if profile with this name already exists
+        const existingProfile = await db.query.profiles.findFirst({
+            where: eq(profiles.name, payload.name),
+        });
 
+        if (existingProfile && !payload.force) {
+            console.log(`❌ POST /profiles failed: Profile \x1b[31m${payload.name}\x1b[0m already exists`);
+            return new Response(JSON.stringify({ error: `${payload.name} already exists` }), {
+                status: 409,
+                headers: corsHeaders(req, { "Content-Type": "application/json" }),
+            });
+        }
+
+        let profileId: number;
+
+        if (existingProfile && payload.force) {
+            // Update existing profile
+            await db
+                .update(profiles)
+                .set({
+                    tagline: payload.tagline ?? null,
+                    profileText: payload.profileText ?? null,
+                    profileRawHtml: payload.profileRawHtml ?? null,
+                })
+                .where(eq(profiles.id, existingProfile.id));
+
+            // Delete existing comments for this profile
+            await db.delete(comments).where(eq(comments.profileId, existingProfile.id));
+
+            profileId = existingProfile.id;
+            console.log(`🔄 Successfully updated \x1b[33m${payload.name}\x1b[0m in DB!`);
+        } else {
+            // Insert new profile
+            const [{ id: newProfileId }] = await db
+                .insert(profiles)
+                .values({
+                    name: payload.name,
+                    tagline: payload.tagline ?? null,
+                    profileText: payload.profileText ?? null,
+                    profileRawHtml: payload.profileRawHtml ?? null,
+                })
+                .returning({ id: profiles.id });
+
+            profileId = newProfileId;
+            console.log(`✅ Successfully inserted \x1b[32m${payload.name}\x1b[0m into DB!`);
+        }
+
+        // Insert comments
         const items = (payload.comments ?? []).map((c) => ({
             profileId,
             authorName: c.authorName ?? null,
@@ -81,10 +121,15 @@ async function handlePostProfiles(req: Request) {
 
         if (items.length) await db.insert(comments).values(items);
 
-        console.log(`✅ Successfully inserted \x1b[32m${payload.name}\x1b[0m into DB! (${items.length} comments)`);
+        console.log(`📝 Inserted ${items.length} comments for \x1b[32m${payload.name}\x1b[0m`);
 
         return new Response(
-            JSON.stringify({ ok: true, profileId, commentsInserted: items.length }),
+            JSON.stringify({
+                ok: true,
+                profileId,
+                commentsInserted: items.length,
+                action: existingProfile && payload.force ? "updated" : "created"
+            }),
             { status: 201, headers: corsHeaders(req, { "Content-Type": "application/json" }) }
         );
     } catch (error) {
