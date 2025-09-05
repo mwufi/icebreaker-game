@@ -8,6 +8,7 @@
     "db:migrate": "bun run src/migrate.ts"
   },
   "dependencies": {
+    "@types/bun": "^1.2.21",
     "drizzle-orm": "^0.33.0"
   },
   "devDependencies": {
