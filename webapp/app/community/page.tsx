@@ -5,11 +5,12 @@ import { db } from '@/lib/instantdb';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, CheckCircle, Clock, User } from 'lucide-react';
+import { Send, CheckCircle, Clock, User, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { id } from '@instantdb/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
 import {
     AlertDialog,
     AlertDialogContent,
@@ -25,6 +26,7 @@ function CommunityContent() {
     const { user } = db.useAuth();
     const router = useRouter();
     const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const { data, isLoading } = db.useQuery({
         $users: {
@@ -51,6 +53,28 @@ function CommunityContent() {
 
     // Profiles without linked users (people we want to invite)
     const unlinkedProfiles = allProfiles.filter((p: any) => !p.linkedUser || p.linkedUser.length === 0);
+
+    // Filter based on search query
+    const filteredLinkedUsers = useMemo(() => {
+        if (!searchQuery.trim()) return linkedUsers;
+        
+        const query = searchQuery.toLowerCase();
+        return linkedUsers.filter((user: any) => {
+            const profile = user.odfProfile?.[0];
+            return profile?.name?.toLowerCase().includes(query) ||
+                   user.email?.toLowerCase().includes(query);
+        });
+    }, [linkedUsers, searchQuery]);
+
+    const filteredUnlinkedProfiles = useMemo(() => {
+        if (!searchQuery.trim()) return unlinkedProfiles;
+        
+        const query = searchQuery.toLowerCase();
+        return unlinkedProfiles.filter((profile: any) => 
+            profile.name?.toLowerCase().includes(query) ||
+            profile.tagline?.toLowerCase().includes(query)
+        );
+    }, [unlinkedProfiles, searchQuery]);
 
     console.log('Community page data:', {
         totalUsers: allUsers.length,
@@ -120,15 +144,27 @@ function CommunityContent() {
                 Community
             </h1>
 
+            {/* Search Bar */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                    type="text"
+                    placeholder="Search by name, tagline, or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-11"
+                />
+            </div>
+
             {/* Users with profiles */}
-            {linkedUsers.length > 0 && (
+            {filteredLinkedUsers.length > 0 && (
                 <div>
                     <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
                         <CheckCircle className="h-6 w-6 text-green-600" />
-                        Active Members ({linkedUsers.length})
+                        Active Members ({filteredLinkedUsers.length})
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {linkedUsers.map((user: any) => {
+                        {filteredLinkedUsers.map((user: any) => {
                             const profile = user.odfProfile[0];
                             return (
                                 <Card key={user.id} className="hover:shadow-lg transition-all duration-200">
@@ -169,14 +205,14 @@ function CommunityContent() {
             )}
 
             {/* Profiles without users (people to invite) */}
-            {unlinkedProfiles.length > 0 && (
+            {filteredUnlinkedProfiles.length > 0 && (
                 <div>
                     <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
                         <User className="h-6 w-6 text-orange-600" />
-                        People to Invite ({unlinkedProfiles.length})
+                        People to Invite ({filteredUnlinkedProfiles.length})
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {unlinkedProfiles.map((profile: any) => {
+                        {filteredUnlinkedProfiles.map((profile: any) => {
                             const hasPendingInvite = hasBeenInvited(profile.id);
                             const initials = profile.name
                                 .split(' ')
@@ -236,6 +272,14 @@ function CommunityContent() {
                 </div>
             )}
 
+            {/* No results message */}
+            {searchQuery && filteredLinkedUsers.length === 0 && filteredUnlinkedProfiles.length === 0 && (
+                <div className="text-center py-12">
+                    <User className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No members found matching "{searchQuery}"</p>
+                </div>
+            )}
+
             <AlertDialog open={!!invitingUserId} onOpenChange={(open) => !open && setInvitingUserId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -247,7 +291,7 @@ function CommunityContent() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={() => {
-                            const profileToInvite = unlinkedProfiles.find((p: any) => p.id === invitingUserId);
+                            const profileToInvite = filteredUnlinkedProfiles.find((p: any) => p.id === invitingUserId);
                             if (profileToInvite) {
                                 handleInvite(profileToInvite);
                             }
