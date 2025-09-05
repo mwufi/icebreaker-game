@@ -62,7 +62,7 @@ function ProfileContent() {
 
     const handleLinkProfile = async (profileId: string) => {
         if (!user?.id) return;
-        
+
         setConfirmDialog({ isOpen: false });
         await db.transact([
             db.tx.profiles[profileId].update({
@@ -72,13 +72,12 @@ function ProfileContent() {
     };
 
     const handleUnlinkProfile = async () => {
-        if (!linkedProfile?.id) return;
-        
+        console.log("Unlinking profile", linkedProfile, user);
+        if (!linkedProfile?.id || !user?.id) return;
+
         setConfirmDialog({ isOpen: false });
         await db.transact([
-            db.tx.profiles[linkedProfile.id].update({
-                linkedUser: null
-            })
+            db.tx.profiles[linkedProfile.id].unlink({ linkedUser: user.id })
         ]);
     };
 
@@ -122,81 +121,113 @@ function ProfileContent() {
         };
 
         return (
-            <div className="max-w-4xl mx-auto space-y-8">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Your Profile
-                    </h1>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setConfirmDialog({ isOpen: true, action: 'unlink' })}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                        <Unlink className="h-4 w-4 mr-2" />
-                        Unlink Profile
-                    </Button>
-                </div>
+            <>
 
-                <Card className="overflow-hidden border-gray-200">
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8">
-                        <div className="flex items-start space-x-6">
-                            <Avatar className="h-32 w-32 ring-4 ring-white shadow-xl">
-                                <AvatarImage
-                                    src={linkedProfile.profilePicUrl}
-                                    alt={linkedProfile.name}
-                                />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-bold">
-                                    {getInitials(linkedProfile.name)}
-                                </AvatarFallback>
-                            </Avatar>
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Your Profile
+                        </h1>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmDialog({ isOpen: true, action: 'unlink' })}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                            <Unlink className="h-4 w-4 mr-2" />
+                            Unlink Profile
+                        </Button>
+                    </div>
 
-                            <div className="flex-1">
-                                <h2 className="text-3xl font-bold text-gray-900">{linkedProfile.name}</h2>
-                                {linkedProfile.tagline && (
-                                    <p className="text-lg text-gray-600 mt-2">{linkedProfile.tagline}</p>
-                                )}
-                                {linkedProfile.profileText && (
-                                    <div className="mt-4 text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                        {linkedProfile.profileText}
-                                    </div>
-                                )}
+                    <Card className="overflow-hidden border-gray-200">
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8">
+                            <div className="flex items-start space-x-6">
+                                <Avatar className="h-32 w-32 ring-4 ring-white shadow-xl">
+                                    <AvatarImage
+                                        src={linkedProfile.profilePicUrl}
+                                        alt={linkedProfile.name}
+                                    />
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-bold">
+                                        {getInitials(linkedProfile.name)}
+                                    </AvatarFallback>
+                                </Avatar>
+
+                                <div className="flex-1">
+                                    <h2 className="text-3xl font-bold text-gray-900">{linkedProfile.name}</h2>
+                                    {linkedProfile.tagline && (
+                                        <p className="text-lg text-gray-600 mt-2">{linkedProfile.tagline}</p>
+                                    )}
+                                    {linkedProfile.profileText && (
+                                        <div className="mt-4 text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                            {linkedProfile.profileText}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Card>
+                    </Card>
 
-                {linkedProfile.comments && linkedProfile.comments.length > 0 && (
-                    <div>
-                        <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                            <MessageCircle className="h-6 w-6 text-blue-600" />
-                            Comments ({linkedProfile.comments.length})
-                        </h3>
-                        <div className="space-y-4">
-                            {linkedProfile.comments.map((comment: any) => (
-                                <Card key={comment.id} className="border-gray-200">
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-start space-x-3">
-                                            <div className="flex-1">
-                                                <div className="flex items-center space-x-2 mb-2">
-                                                    <span className="font-semibold text-gray-900">{comment.authorName || 'Anonymous'}</span>
-                                                    <span className="text-gray-500 text-sm">• {comment.dateText}</span>
-                                                </div>
-                                                <div className="text-gray-700 leading-relaxed">{comment.bodyText}</div>
-                                                {comment.likes > 0 && (
-                                                    <div className="mt-3 text-sm text-gray-600 font-medium">
-                                                        ❤️ {comment.likes} like{comment.likes !== 1 ? 's' : ''}
+                    {linkedProfile.comments && linkedProfile.comments.length > 0 && (
+                        <div>
+                            <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                                <MessageCircle className="h-6 w-6 text-blue-600" />
+                                Comments ({linkedProfile.comments.length})
+                            </h3>
+                            <div className="space-y-4">
+                                {linkedProfile.comments.map((comment: any) => (
+                                    <Card key={comment.id} className="border-gray-200">
+                                        <CardContent className="pt-6">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center space-x-2 mb-2">
+                                                        <span className="font-semibold text-gray-900">{comment.authorName || 'Anonymous'}</span>
+                                                        <span className="text-gray-500 text-sm">• {comment.dateText}</span>
                                                     </div>
-                                                )}
+                                                    <div className="text-gray-700 leading-relaxed">{comment.bodyText}</div>
+                                                    {comment.likes > 0 && (
+                                                        <div className="mt-3 text-sm text-gray-600 font-medium">
+                                                            ❤️ {comment.likes} like{comment.likes !== 1 ? 's' : ''}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+
+                <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) => setConfirmDialog({ isOpen: open })}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {confirmDialog.action === 'link' ? 'Link Profile' : 'Unlink Profile'}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {confirmDialog.action === 'link'
+                                    ? 'Are you sure you want to link this profile to your account? You can only have one linked profile at a time.'
+                                    : 'Are you sure you want to unlink this profile from your account? You can link a different profile later.'}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={() => {
+                                    if (confirmDialog.action === 'link' && confirmDialog.profileId) {
+                                        handleLinkProfile(confirmDialog.profileId);
+                                    } else if (confirmDialog.action === 'unlink') {
+                                        handleUnlinkProfile();
+                                    }
+                                }}
+                            >
+                                {confirmDialog.action === 'link' ? 'Link Profile' : 'Unlink Profile'}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </>
         );
     }
 
