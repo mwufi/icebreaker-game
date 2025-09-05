@@ -1,0 +1,244 @@
+'use client';
+
+import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
+import { db } from '@/lib/instantdb';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Send, CheckCircle, Clock, User } from 'lucide-react';
+import Link from 'next/link';
+import { id } from '@instantdb/react';
+import { useState } from 'react';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+
+function CommunityContent() {
+    const { user } = db.useAuth();
+    const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
+
+    const { data, isLoading } = db.useQuery({
+        $users: {
+            $: {},
+            odfProfile: {}
+        },
+        profiles: {
+            $: {},
+            linkedUser: {}
+        },
+        inviteLink: {
+            $: {},
+            inviter: {},
+            invitees: {}
+        }
+    });
+
+    const allUsers = data?.$users || [];
+    const allProfiles = data?.profiles || [];
+    const allInvites = data?.inviteLink || [];
+
+    // Users with linked profiles
+    const linkedUsers = allUsers.filter((u: any) => u.odfProfile && u.odfProfile.length > 0);
+    
+    // Users without linked profiles (need invites)
+    const unlinkedUsers = allUsers.filter((u: any) => !u.odfProfile || u.odfProfile.length === 0);
+
+    // Check if user has been invited
+    const hasBeenInvited = (userEmail: string) => {
+        // For now, we'll track invites by checking if there's an unfulfilled invite
+        // In a real app, you might want to track intended recipients differently
+        return allInvites.some((invite: any) => !invite.fulfilledAt);
+    };
+
+    const handleInvite = async (targetUserEmail: string) => {
+        const currentUserProfile = linkedUsers.find((u: any) => u.id === user?.id)?.odfProfile?.[0];
+        if (!currentUserProfile) {
+            alert("You need a profile to send invites!");
+            return;
+        }
+        
+        setInvitingUserId(null);
+
+        // Create new invite link with a unique code
+        const newInviteId = id();
+        const inviteCode = `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        await db.transact([
+            db.tx.inviteLink[newInviteId].update({
+                code: inviteCode
+            }),
+            db.tx.inviteLink[newInviteId].link({
+                inviter: currentUserProfile.id
+            })
+        ]);
+
+        // In a real app, you would send this invite link to the user's email
+        console.log(`Invite link created for ${targetUserEmail}: /join/${inviteCode}`);
+        alert(`Invite link created! Share this link: /join/${inviteCode}`);
+    };
+
+    const getInitials = (email: string) => {
+        return email
+            .split('@')[0]
+            .split('.')
+            .map(part => part[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || 'U';
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-gray-500">Loading community...</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-6xl mx-auto space-y-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Community
+            </h1>
+
+            {/* Users with profiles */}
+            {linkedUsers.length > 0 && (
+                <div>
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                        Active Members ({linkedUsers.length})
+                    </h2>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {linkedUsers.map((user: any) => {
+                            const profile = user.odfProfile[0];
+                            return (
+                                <Card key={user.id} className="hover:shadow-lg transition-all duration-200">
+                                    <CardHeader className="pb-4">
+                                        <div className="flex items-start space-x-4">
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarImage 
+                                                    src={profile.profilePicUrl} 
+                                                    alt={profile.name}
+                                                />
+                                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                                    {getInitials(profile.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-lg truncate">{profile.name}</h3>
+                                                {profile.tagline && (
+                                                    <p className="text-sm text-gray-600 truncate">{profile.tagline}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        <div className="text-sm text-gray-600 mb-3">
+                                            {user.email}
+                                        </div>
+                                        <Button asChild variant="outline" className="w-full">
+                                            <Link href={`/profiles/${profile.id}`}>
+                                                View Profile
+                                            </Link>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Users without profiles */}
+            {unlinkedUsers.length > 0 && (
+                <div>
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                        <Clock className="h-6 w-6 text-orange-600" />
+                        Pending Members ({unlinkedUsers.length})
+                    </h2>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {unlinkedUsers.map((user: any) => {
+                            const hasPendingInvite = hasBeenInvited(user.email);
+                            return (
+                                <Card key={user.id} className="hover:shadow-lg transition-all duration-200 bg-gray-50">
+                                    <CardHeader className="pb-4">
+                                        <div className="flex items-start space-x-4">
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarFallback className="bg-gray-400">
+                                                    <User className="h-6 w-6 text-white" />
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-lg truncate text-gray-600">
+                                                    No profile yet
+                                                </h3>
+                                                <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        {hasPendingInvite ? (
+                                            <div className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-md">
+                                                <p className="font-medium text-yellow-800">Invite sent!</p>
+                                                <p className="text-yellow-700 text-xs mt-1">
+                                                    Waiting for them to create a profile
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <Button 
+                                                onClick={() => {
+                                                    setInvitingUserId(user.id);
+                                                }}
+                                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                                            >
+                                                <Send className="h-4 w-4 mr-2" />
+                                                Send Invite
+                                            </Button>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            <AlertDialog open={!!invitingUserId} onOpenChange={(open) => !open && setInvitingUserId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Send Profile Invite</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to send an invite to this user? They'll receive a notification to create their profile.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            const userToInvite = unlinkedUsers.find((u: any) => u.id === invitingUserId);
+                            if (userToInvite) {
+                                handleInvite(userToInvite.email);
+                            }
+                        }}>
+                            Send Invite
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+    );
+}
+
+export default function CommunityPage() {
+    return (
+        <ClerkSignedInComponent>
+            <CommunityContent />
+        </ClerkSignedInComponent>
+    );
+}

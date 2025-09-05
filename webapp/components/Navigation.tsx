@@ -16,6 +16,12 @@ export function Navigation() {
                 <div className="flex items-center gap-4">
                     <SignedIn>
                         <Link 
+                            href="/community" 
+                            className="text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            Community
+                        </Link>
+                        <Link 
                             href="/profile" 
                             className="text-gray-600 hover:text-gray-900 transition-colors"
                         >

@@ -14,6 +14,10 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
     }),
+    inviteLink: i.entity({
+      code: i.string().unique().indexed(),
+      fulfilledAt: i.date().optional(),
+    }),
     profileComments: i.entity({
       authorHref: i.string().optional(),
       authorName: i.string().optional(),
@@ -35,6 +39,30 @@ const _schema = i.schema({
     }),
   },
   links: {
+    inviteLinkInvitees: {
+      forward: {
+        on: "inviteLink",
+        has: "many",
+        label: "invitees",
+      },
+      reverse: {
+        on: "profiles",
+        has: "one",
+        label: "inviteLink",
+      },
+    },
+    inviteLinkInviter: {
+      forward: {
+        on: "inviteLink",
+        has: "one",
+        label: "inviter",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "createdInviteLinks",
+      },
+    },
     profileCommentsAuthor: {
       forward: {
         on: "profileComments",

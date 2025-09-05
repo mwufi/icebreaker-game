@@ -9,7 +9,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, MessageCircle, Unlink, ExternalLink } from 'lucide-react';
+import { Plus, Unlink } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
