@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Search, User } from 'lucide-react';
+import { Search, User, ExternalLink } from 'lucide-react';
 
 interface Profile {
     id: string;
@@ -13,25 +13,33 @@ interface Profile {
     tagline?: string;
     profilePicUrl?: string;
     createdAt: number;
+    linkedUser?: {
+        id: string;
+        email?: string;
+    } | null;
 }
 
 interface ProfileSearchProps {
     profiles: Profile[];
+    linkedProfiles: Profile[];
     onLink: (profileId: string) => void;
+    onConfirmLink?: (profileId: string) => void;
 }
 
-export function ProfileSearch({ profiles, onLink }: ProfileSearchProps) {
+export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink }: ProfileSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
+    const allProfiles = [...profiles, ...linkedProfiles];
+    
     const filteredProfiles = useMemo(() => {
-        if (!searchQuery.trim()) return profiles;
+        if (!searchQuery.trim()) return allProfiles;
         
         const query = searchQuery.toLowerCase();
-        return profiles.filter(profile => 
+        return allProfiles.filter(profile => 
             profile.name.toLowerCase().includes(query) ||
             profile.tagline?.toLowerCase().includes(query)
         );
-    }, [profiles, searchQuery]);
+    }, [allProfiles, searchQuery]);
 
     const getInitials = (name: string) => {
         return name
@@ -91,12 +99,29 @@ export function ProfileSearch({ profiles, onLink }: ProfileSearchProps) {
                         </CardHeader>
                         
                         <CardContent>
-                            <Button 
-                                onClick={() => onLink(profile.id)}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
-                            >
-                                Link This Profile
-                            </Button>
+                            {profile.linkedUser ? (
+                                <div className="space-y-3">
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-medium">Linked to:</span>
+                                        <p className="text-gray-900">{profile.linkedUser.email || 'User'}</p>
+                                    </div>
+                                    <Button 
+                                        variant="outline"
+                                        className="w-full"
+                                        disabled
+                                    >
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        Already Linked
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button 
+                                    onClick={() => onConfirmLink ? onConfirmLink(profile.id) : onLink(profile.id)}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+                                >
+                                    Link This Profile
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                 ))}
