@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@instantdb/admin": "^0.21.12",
+    "@instantdb/react": "^0.21.13",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@react-oauth/google": "^0.12.2",
     "@types/better-sqlite3": "^7.6.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
