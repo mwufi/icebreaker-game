@@ -11,12 +11,17 @@ const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
 const db = init<AppSchema>({ appId: APP_ID });
 
 export default function Home() {
-  const { user } = useUser();
+  const { user } = db.useAuth();
   
-  // Get today's date at midnight for comparison
+  // Get today's and yesterday's date at midnight for comparison
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
   console.log("Today's date:", today);
+  console.log("Yesterday's date:", yesterday);
   
   // Fetch current user's profile and today's matches
   const { data } = db.useQuery({
@@ -30,10 +35,10 @@ export default function Home() {
         dailyMatches: {
           $: {
             where: {
-              date: { $gte: today }
+              date: { $gte: yesterday }
             }
           },
-          targetProfile: {}
+          targetProfile: {} 
         }
       }
     }
@@ -42,6 +47,8 @@ export default function Home() {
   const currentUser = data?.$users?.[0];
   const profile = currentUser?.odfProfile?.[0];
   const todaysMatch = profile?.dailyMatches?.[0];
+  console.log("profile", profile);
+  console.log("todaysMatch", todaysMatch);
   
   const handleViewMatch = () => {
     if (!todaysMatch) {
@@ -110,7 +117,7 @@ export default function Home() {
                   {todaysMatch ? (
                     <>
                       <p className="text-gray-600 mb-4">
-                        Ready to meet someone new today?
+                        You got a new match today!
                       </p>
                       <button 
                         onClick={handleViewMatch}

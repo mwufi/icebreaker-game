@@ -20,7 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { GameProfile } from '@/components/profile/GameProfile';
+import { GameProfileEnhanced } from '@/components/profile/GameProfileEnhanced';
 
 function ProfileContent() {
     const { user } = db.useAuth();
@@ -37,7 +37,9 @@ function ProfileContent() {
                     id: user?.id
                 }
             },
-            odfProfile: {}
+            odfProfile: {
+                preferences: {}
+            }
         },
         profiles: {
             $: {},
@@ -114,7 +116,7 @@ function ProfileContent() {
     if (linkedProfile) {
         return (
             <>
-                <GameProfile 
+                <GameProfileEnhanced 
                     profile={linkedProfile}
                     isOwner={true}
                     onUnlink={() => setConfirmDialog({ isOpen: true, action: 'unlink' })}

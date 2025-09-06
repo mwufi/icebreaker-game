@@ -21,6 +21,7 @@ import {
     IconUsers,
     IconBug,
     IconSettings,
+    IconCode,
 } from "@tabler/icons-react";
 
 export function AvatarPopover() {
@@ -33,6 +34,11 @@ export function AvatarPopover() {
         {
             label: 'Report Bug', icon: IconBug, href: null, onClick: () => {
                 window.open('https://github.com/mwufi/icebreaker-game/issues', '_blank');
+            }
+        },
+        {
+            label: 'Modify this site', icon: IconCode, href: null, onClick: () => {
+                window.open('https://github.com/mwufi/icebreaker-game', '_blank');
             }
         },
     ];
