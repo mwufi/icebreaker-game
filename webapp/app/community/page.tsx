@@ -30,15 +30,12 @@ function CommunityContent() {
 
     const { data, isLoading } = db.useQuery({
         $users: {
-            $: {},
             odfProfile: {}
         },
         profiles: {
-            $: {},
             linkedUser: {}
         },
         inviteLink: {
-            $: {},
             inviter: {},
             invitees: {}
         }
@@ -81,7 +78,16 @@ function CommunityContent() {
         linkedUsers: linkedUsers.length,
         totalProfiles: allProfiles.length,
         unlinkedProfiles: unlinkedProfiles.length,
-        allProfiles
+        allProfiles,
+        allUsers,
+        currentUserId: user?.id,
+        profilesWithLinkedUser: allProfiles.filter((p: any) => p.linkedUser && p.linkedUser.length > 0),
+        profilesLinkedUserDetails: allProfiles.map((p: any) => ({
+            profileId: p.id,
+            profileName: p.name,
+            linkedUser: p.linkedUser,
+            linkedUserCount: p.linkedUser?.length || 0
+        }))
     });
 
     // Check if profile has been invited

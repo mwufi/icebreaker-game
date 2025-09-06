@@ -3,22 +3,35 @@
 import type { InstantRules } from "@instantdb/admin";
 
 const rules = {
-  /**
-   * Welcome to Instant's permission system!
-   * Right now your rules are empty. To start filling them in, check out the docs:
-   * https://www.instantdb.com/docs/permissions
-   *
-   * Here's an example to give you a feel:
-   * posts: {
-   *   allow: {
-   *     view: "true",
-   *     create: "isOwner",
-   *     update: "isOwner",
-   *     delete: "isOwner",
-   *   },
-   *   bind: ["isOwner", "auth.id != null && auth.id == data.ownerId"],
-   * },
-   */
+  profiles: {
+    allow: {
+      view: "true",
+      create: "auth.id != null",
+      update: "auth.id == data.linkedUser",
+      delete: "false"
+    }
+  },
+  $users: {
+    allow: {
+      view: "true"
+    }
+  },
+  inviteLink: {
+    allow: {
+      view: "true",
+      create: "auth.id != null",
+      update: "auth.id == data.inviter.linkedUser",
+      delete: "false"
+    }
+  },
+  profileComments: {
+    allow: {
+      view: "true",
+      create: "auth.id != null",
+      update: "auth.id == data.author.linkedUser",
+      delete: "auth.id == data.author.linkedUser"
+    }
+  }
 } satisfies InstantRules;
 
 export default rules;
