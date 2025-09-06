@@ -4,8 +4,52 @@ import { SignedIn, SignedOut } from '@clerk/nextjs';
 import { Navigation } from '@/components/Navigation';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
+import { init } from '@instantdb/react';
+import type { AppSchema } from '@/instant.schema';
+const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
+const db = init<AppSchema>({ appId: APP_ID });
 
 export default function Home() {
+  const { user } = useUser();
+  
+  // Get today's date at midnight for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  console.log("Today's date:", today);
+  
+  // Fetch current user's profile and today's matches
+  const { data } = db.useQuery({
+    $users: {
+      $: {
+        where: {
+          id: user?.id || ''
+        }
+      },
+      odfProfile: {
+        dailyMatches: {
+          $: {
+            where: {
+              date: { $gte: today }
+            }
+          },
+          targetProfile: {}
+        }
+      }
+    }
+  });
+  
+  const currentUser = data?.$users?.[0];
+  const profile = currentUser?.odfProfile?.[0];
+  const todaysMatch = profile?.dailyMatches?.[0];
+  
+  const handleViewMatch = () => {
+    if (!todaysMatch) {
+      return;
+    }
+    // Navigate to match page or handle match viewing
+    console.log('Viewing match:', todaysMatch);
+  };
   return (
     <>
       <SignedOut>
@@ -63,12 +107,34 @@ export default function Home() {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
                     💝 Your Daily Match
                   </h2>
-                  <p className="text-gray-600 mb-4">
-                    Ready to meet someone new today?
-                  </p>
-                  <button className="w-full bg-purple-600 text-white rounded-md py-2 px-4 hover:bg-purple-700 transition-colors">
-                    View Today's Match
-                  </button>
+                  {todaysMatch ? (
+                    <>
+                      <p className="text-gray-600 mb-4">
+                        Ready to meet someone new today?
+                      </p>
+                      <button 
+                        onClick={handleViewMatch}
+                        className="w-full bg-purple-600 text-white rounded-md py-2 px-4 hover:bg-purple-700 transition-colors"
+                      >
+                        View Today's Match
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-600 mb-4">
+                        No match yet! Check back in a few hours!
+                      </p>
+                      <p className="text-sm text-gray-500 mb-4">
+                        In the meantime, why don't you update your preferences?
+                      </p>
+                      <Link
+                        href="/profile/edit"
+                        className="block w-full bg-indigo-600 text-white rounded-md py-2 px-4 hover:bg-indigo-700 transition-colors text-center"
+                      >
+                        Update Preferences
+                      </Link>
+                    </>
+                  )}
                 </div>
                 
                 <div className="bg-gray-50 rounded-lg p-6">
