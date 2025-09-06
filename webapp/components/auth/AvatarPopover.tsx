@@ -13,7 +13,7 @@ export function AvatarPopover() {
         { label: 'View Profile', icon: '👤', href: '/profile' },
         { label: 'Community', icon: '💬', href: '/community' },
         { label: 'Report a Bug', icon: '🐛', href: null, onClick: () => {
-            window.open('https://github.com/your-repo/issues', '_blank');
+            window.open('https://github.com/mwufi/icebreaker-game/issues', '_blank');
             setIsOpen(false);
         }},
     ];
