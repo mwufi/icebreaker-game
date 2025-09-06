@@ -3,8 +3,7 @@
 import { useParams } from 'next/navigation';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
-import { ProfileCard } from '@/components/profile/ProfileCard';
-import { CommentsList } from '@/components/profile/CommentsList';
+import { GameProfile } from '@/components/profile/GameProfile';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button';
 function ProfileViewContent() {
     const params = useParams();
     const profileId = params.id as string;
+    const { user } = db.useAuth();
 
     const { data, isLoading, error } = db.useQuery({
         profiles: {
@@ -32,6 +32,7 @@ function ProfileViewContent() {
     });
 
     const profile = data?.profiles?.[0];
+    const isOwner = profile?.linkedUser?.[0]?.id === user?.id;
 
     if (isLoading) {
         return (
@@ -55,30 +56,17 @@ function ProfileViewContent() {
         );
     }
 
+    const handleIce = () => {
+        // TODO: Implement ice breaking functionality
+        console.log('Breaking the ice with', profile.name);
+    };
+
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="flex items-center justify-between">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Profile
-                </h1>
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
-                    </Link>
-                </Button>
-            </div>
-
-            <ProfileCard profile={profile} />
-
-            {profile.linkedUser && (
-                <div className="text-sm text-gray-600 bg-gray-100 rounded-lg p-4">
-                    <span className="font-medium">Linked to user:</span> {profile.linkedUser?.[0]?.email || 'User'}
-                </div>
-            )}
-
-            <CommentsList comments={profile.comments || []} />
-        </div>
+        <GameProfile 
+            profile={profile}
+            isOwner={isOwner}
+            onIce={handleIce}
+        />
     );
 }
 

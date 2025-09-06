@@ -20,8 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ProfileCard } from '@/components/profile/ProfileCard';
-import { CommentsList } from '@/components/profile/CommentsList';
+import { GameProfile } from '@/components/profile/GameProfile';
 
 function ProfileContent() {
     const { user } = db.useAuth();
@@ -115,27 +114,11 @@ function ProfileContent() {
     if (linkedProfile) {
         return (
             <>
-
-                <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Your Profile
-                        </h1>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setConfirmDialog({ isOpen: true, action: 'unlink' })}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                            <Unlink className="h-4 w-4 mr-2" />
-                            Unlink Profile
-                        </Button>
-                    </div>
-
-                    <ProfileCard profile={linkedProfile} />
-
-                    <CommentsList comments={linkedProfile.comments || []} />
-                </div>
+                <GameProfile 
+                    profile={linkedProfile}
+                    isOwner={true}
+                    onUnlink={() => setConfirmDialog({ isOpen: true, action: 'unlink' })}
+                />
 
                 <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) => setConfirmDialog({ isOpen: open })}>
                     <AlertDialogContent>
