@@ -3,7 +3,7 @@
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
-  // We inferred 1 attribute!
+  // We inferred 2 attributes!
   // Take a look at this schema, and if everything looks good,
   // run `push schema` again to enforce the types.
   entities: {
@@ -14,10 +14,20 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
     }),
+    dailyMatches: i.entity({
+      accepted: i.boolean(),
+      text: i.any().optional(),
+    }),
+    groups: i.entity({
+      name: i.string().indexed(),
+    }),
     inviteLink: i.entity({
       code: i.string().unique().indexed(),
       createdAt: i.number().optional(),
       fulfilledAt: i.date().optional(),
+    }),
+    preferences: i.entity({
+      lookingFor: i.any().optional(),
     }),
     profileComments: i.entity({
       authorHref: i.string().optional(),
@@ -40,6 +50,42 @@ const _schema = i.schema({
     }),
   },
   links: {
+    dailyMatchesProfiles: {
+      forward: {
+        on: "dailyMatches",
+        has: "one",
+        label: "profiles",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "dailyMatches",
+      },
+    },
+    groupsMembers: {
+      forward: {
+        on: "groups",
+        has: "many",
+        label: "members",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "groups",
+      },
+    },
+    inviteLinkIntendedInvitee: {
+      forward: {
+        on: "inviteLink",
+        has: "one",
+        label: "intendedInvitee",
+      },
+      reverse: {
+        on: "profiles",
+        has: "one",
+        label: "intendedInite",
+      },
+    },
     inviteLinkInvitees: {
       forward: {
         on: "inviteLink",
@@ -62,6 +108,18 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "createdInviteLinks",
+      },
+    },
+    preferencesProfile: {
+      forward: {
+        on: "preferences",
+        has: "one",
+        label: "profile",
+      },
+      reverse: {
+        on: "profiles",
+        has: "one",
+        label: "preferences",
       },
     },
     profileCommentsAuthor: {
