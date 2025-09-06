@@ -16,6 +16,8 @@ const _schema = i.schema({
     }),
     dailyMatches: i.entity({
       accepted: i.boolean(),
+      date: i.date().optional(),
+      otherSideAccepted: i.boolean().optional(),
       text: i.any().optional(),
     }),
     groups: i.entity({
@@ -60,6 +62,18 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "dailyMatches",
+      },
+    },
+    dailyMatchesTargetProfile: {
+      forward: {
+        on: "dailyMatches",
+        has: "one",
+        label: "targetProfile",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "potentialMatches",
       },
     },
     groupsMembers: {
