@@ -2,6 +2,8 @@
 
 import { useClerk } from '@clerk/nextjs';
 import { db } from '@/lib/instantdb';
+import { IconLogout } from "@tabler/icons-react";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 export function ClerkSignOutButton() {
     const { signOut } = useClerk();
@@ -18,12 +20,9 @@ export function ClerkSignOutButton() {
     };
 
     return (
-        <button
-            onClick={handleSignOut}
-            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
-        >
-            <span className="text-base">🚪</span>
-            Sign Out
-        </button>
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-3 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 px-2 py-1.5">
+            <IconLogout className="h-4 w-4 font-bold" />
+            <span className="font-semibold">Sign Out</span>
+        </DropdownMenuItem>
     );
 }
