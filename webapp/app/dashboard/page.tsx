@@ -1,13 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import Link from 'next/link';
-import { DailyMatchModal } from '@/components/DailyMatchModal';
+import { Lock, Sparkles, BookOpen, Heart, Coffee, Music } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
-export default function Dashboard() {
-  const [showMatchModal, setShowMatchModal] = useState(false);
+interface UnlockedMatch {
+  [key: string]: boolean;
+}
+
+function DashboardContent() {
+  const [unlockedMatches, setUnlockedMatches] = useState<UnlockedMatch>({});
   const { user } = db.useAuth();
 
   // Get today's and yesterday's date at midnight for comparison
@@ -17,7 +23,7 @@ export default function Dashboard() {
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  // Fetch current user's profile and today's matches
+  // Fetch current user's profile and matches
   const { data } = db.useQuery({
     $users: {
       $: {
@@ -40,92 +46,246 @@ export default function Dashboard() {
 
   const currentUser = data?.$users?.[0];
   const profile = currentUser?.odfProfile?.[0];
-  const todaysMatch = profile?.dailyMatches?.[0];
+  const matches = profile?.dailyMatches || [];
 
-  const handleViewMatch = () => {
-    if (!todaysMatch) {
-      return;
-    }
-    setShowMatchModal(true);
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
+  const handleUnlock = (matchId: string) => {
+    setUnlockedMatches(prev => ({ ...prev, [matchId]: true }));
+  };
+
+  // Sample challenges
+  const challenges = [
+    "Figure out what their favorite book is",
+    "Ask about their most memorable travel experience",
+    "Discover what they're passionate about",
+    "Find out their hidden talent",
+    "Learn about their favorite coffee order"
+  ];
+
+  const activities = [
+    { icon: BookOpen, text: "Tell us about your favorite book", link: "/activities/book" },
+    { icon: Coffee, text: "What's your ideal morning routine?", link: "/activities/morning" },
+    { icon: Music, text: "Share your go-to playlist", link: "/activities/music" },
+  ];
+
   return (
-    <ClerkSignedInComponent>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Your Dashboard
-        </h1>
+    <div className="relative min-h-screen bg-black overflow-hidden">
+      {/* Grainy texture overlay */}
+      <div
+        className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`,
+        }}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              💝 Your Daily Match
-            </h2>
-            {todaysMatch ? (
-              <>
-                <p className="text-gray-600 mb-4">
-                  You got a new match today!
-                </p>
-                <button
-                  onClick={handleViewMatch}
-                  className="w-full bg-purple-600 text-white rounded-md py-2 px-4 hover:bg-purple-700 transition-colors"
-                >
-                  View Today's Match
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-600 mb-4">
-                  No match yet! Check back in a few hours!
-                </p>
-                <p className="text-sm text-gray-500 mb-4">
-                  In the meantime, why don't you update your preferences?
-                </p>
-                <Link
-                  href="/profile/edit"
-                  className="block w-full bg-indigo-600 text-white rounded-md py-2 px-4 hover:bg-indigo-700 transition-colors text-center"
-                >
-                  Update Preferences
-                </Link>
-              </>
-            )}
-          </div>
+      {/* Gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
 
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              📋 Pending Activities
+      {/* Content */}
+      <div className="relative z-10 min-h-screen px-6 py-16">
+        <div className="max-w-2xl mx-auto space-y-16">
+          {/* Welcome */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] text-white">
+              Welcome, {profile?.name?.split(' ')[0] || 'Friend'}
+            </h1>
+          </motion.div>
+
+          {/* Matches Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+              Your Matches
             </h2>
-            <div className="space-y-3">
-              <div className="bg-white rounded p-3 border">
-                <p className="text-sm text-gray-600">No pending activities</p>
-              </div>
+
+            <div className="space-y-4">
+              {matches.length === 0 ? (
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
+                  <p className="text-white/70">No matches yet today. Check back soon!</p>
+                  <Link
+                    href="/profile/edit"
+                    className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
+                  >
+                    Update your preferences →
+                  </Link>
+                </div>
+              ) : (
+                matches.map((match: any, index: number) => {
+                  const targetProfile = match.targetProfile?.[0];
+                  const isUnlocked = unlockedMatches[match.id];
+                  const challenge = challenges[index % challenges.length];
+
+                  return (
+                    <motion.div
+                      key={match.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="relative overflow-hidden"
+                    >
+                      {/* Unlock animation overlay */}
+                      <AnimatePresence>
+                        {unlockedMatches[match.id] && (
+                          <motion.div
+                            className="absolute inset-0 pointer-events-none z-20"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: '100%' }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent skew-x-12" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className={`
+                        relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6
+                        transition-all duration-500
+                        ${isUnlocked ? 'bg-white/10' : 'hover:bg-white/10'}
+                      `}>
+                        {!isUnlocked ? (
+                          // Locked state
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <Lock className="h-5 w-5 text-white/50" />
+                              <p className="text-white/70">New match available</p>
+                            </div>
+                            <button
+                              onClick={() => handleUnlock(match.id)}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                            >
+                              Unlock
+                            </button>
+                          </div>
+                        ) : (
+                          // Unlocked state
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-4"
+                          >
+                            <div className="flex items-start gap-4">
+                              <Avatar className="h-12 w-12 border border-white/20">
+                                <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
+                                <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
+                                  {targetProfile ? getInitials(targetProfile.name) : '?'}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              <div className="flex-1 space-y-2">
+                                <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                                  {targetProfile?.name || 'Mystery Match'}
+                                </h3>
+
+                                {match.text && (
+                                  <p className="text-white/70 text-sm leading-relaxed">
+                                    {match.text}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center gap-2 pt-2">
+                                  <Sparkles className="h-4 w-4 text-yellow-500/70" />
+                                  <p className="text-yellow-500/70 text-sm italic">
+                                    Challenge: {challenge}
+                                  </p>
+                                </div>
+
+                                <Link
+                                  href={`/profiles/${targetProfile?.id}`}
+                                  className="inline-block mt-2 text-sm text-white/50 hover:text-white/70 transition-colors"
+                                >
+                                  View full profile →
+                                </Link>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
-          </div>
-        </div>
+          </motion.section>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link href="/profile" className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile</h3>
-            <p className="text-gray-600">Manage your account settings and preferences.</p>
-          </Link>
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Messages</h3>
-            <p className="text-gray-600">View your ongoing conversations.</p>
-          </div>
-          <Link href="/community" className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Community</h3>
-            <p className="text-gray-600">Explore and connect with others.</p>
-          </Link>
+          {/* Activities Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="space-y-8"
+          >
+            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+              Activities
+            </h2>
+
+            <p className="text-white/70 text-lg">
+              Share more about yourself to improve your matches
+            </p>
+
+            <div className="space-y-3">
+              {activities.map((activity, index) => {
+                const Icon = activity.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  >
+                    <Link
+                      href={activity.link}
+                      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
+                    >
+                      <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
+                      <span className="text-white/70 group-hover:text-white/90 transition-colors">
+                        {activity.text}
+                      </span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="text-center pb-8"
+          >
+            <Link href="/profile" className="text-white/30 hover:text-white/50 text-sm transition-colors">
+              View your profile
+            </Link>
+          </motion.div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Daily Match Modal */}
-      <DailyMatchModal
-        isOpen={showMatchModal}
-        onOpenChange={setShowMatchModal}
-        match={todaysMatch}
-        targetProfile={todaysMatch?.targetProfile?.[0]}
-      />
+export default function Dashboard() {
+  return (
+    <ClerkSignedInComponent>
+      <DashboardContent />
     </ClerkSignedInComponent>
   );
 }
