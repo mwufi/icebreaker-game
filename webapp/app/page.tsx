@@ -1,162 +1,265 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
-import { Navigation } from '@/components/Navigation';
-import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
-import { init } from '@instantdb/react';
-import type { AppSchema } from '@/instant.schema';
-import { DailyMatchModal } from '@/components/DailyMatchModal';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowDown } from 'lucide-react';
 
-const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
-const db = init<AppSchema>({ appId: APP_ID });
+const story = [
+  {
+    type: "heading",
+    text: "Welcome to Something New"
+  },
+  {
+    type: "paragraph",
+    text: "Yesterday was great. We met, we talked, we connected. We shared stories over coffee, laughed at inside jokes that didn't exist an hour before, and discovered that strangers can feel like old friends in the right moment."
+  },
+  {
+    type: "paragraph",
+    text: "We came away with new perspectives, unexpected commonalities, and that warm feeling of genuine human connection."
+  },
+  {
+    type: "paragraph",
+    text: "And yet what's magical about meeting people is how much we have yet to discover. The conversations that almost happened. The stories left untold. What if you had five more minutes? What if you had asked that one question? What if the right person was just one introduction away?"
+  },
+  {
+    type: "heading",
+    text: "Our Experiment"
+  },
+  {
+    type: "paragraph",
+    text: "SuperSecret is a layer on top of life for connecting with each other in a new, meaningful way."
+  },
+  {
+    type: "paragraph",
+    text: "We're not building a social platform. We're building a pro-social device — a small experiment in seeing what happens when we give serendipity, authenticity, and human connection just a little more room to grow."
+  },
+  {
+    type: "paragraph",
+    text: "Every day, we match you with someone new. Someone whose thoughts resonate with yours. Someone who sees the world through a compatible lens. No photos to judge, no profiles to perfect — just two people, ready to connect."
+  },
+  {
+    type: "paragraph",
+    text: "Technology doesn't just change what we do; it changes who we are. Our mission — should you choose to accept it — is simple:"
+  },
+  {
+    type: "paragraph",
+    text: "Stay curious, explore deeper, and help shape what it means to meet each other at our best."
+  },
+  {
+    type: "divider"
+  },
+  {
+    type: "closing",
+    text: "This is SuperSecret."
+  },
+  {
+    type: "closing",
+    text: "Your sanctuary for authentic connections."
+  },
+  {
+    type: "question",
+    text: "Are you ready to meet someone who gets you?"
+  }
+];
 
 export default function Home() {
-  const [showMatchModal, setShowMatchModal] = useState(false);
-  const { user } = db.useAuth();
+  const router = useRouter();
+  const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  // Get today's and yesterday's date at midnight for comparison
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
-  console.log("Today's date:", today);
-  console.log("Yesterday's date:", yesterday);
-
-  // Fetch current user's profile and today's matches
-  const { data } = db.useQuery({
-    $users: {
-      $: {
-        where: {
-          id: user?.id || ''
-        }
-      },
-      odfProfile: {
-        dailyMatches: {
-          $: {
-            where: {
-              date: { $gte: yesterday }
-            }
-          },
-          targetProfile: {}
-        }
+  // Redirect signed-in users to dashboard
+  useEffect(() => {
+    const checkAuth = () => {
+      const authElement = document.querySelector('[data-signed-in="true"]');
+      if (authElement) {
+        router.push('/dashboard');
       }
-    }
-  });
+    };
+    
+    // Check immediately and after a short delay
+    checkAuth();
+    const timeout = setTimeout(checkAuth, 100);
+    
+    return () => clearTimeout(timeout);
+  }, [router]);
 
-  const currentUser = data?.$users?.[0];
-  const profile = currentUser?.odfProfile?.[0];
-  const todaysMatch = profile?.dailyMatches?.[0];
-  console.log("profile", profile);
-  console.log("todaysMatch", todaysMatch);
-
-  const handleViewMatch = () => {
-    if (!todaysMatch) {
-      return;
-    }
-    setShowMatchModal(true);
-  };
   return (
     <>
       <SignedOut>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <main className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                Welcome to SuperSecret
-              </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                Your exclusive platform for anonymous connections and authentic conversations.
-                Share your thoughts freely, meet new people, and discover meaningful connections.
-              </p>
+        <div className="relative min-h-screen bg-black overflow-hidden">
+          {/* Grainy texture overlay */}
+          <div className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`,
+            }}
+          />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div className="bg-white rounded-lg p-6 shadow-sm border">
-                  <div className="text-4xl mb-4">🎭</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Stay Anonymous</h3>
-                  <p className="text-gray-600">Express yourself freely without revealing your identity</p>
-                </div>
-                <div className="bg-white rounded-lg p-6 shadow-sm border">
-                  <div className="text-4xl mb-4">💫</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Matches</h3>
-                  <p className="text-gray-600">Get matched with someone new every day for meaningful conversations</p>
-                </div>
-                <div className="bg-white rounded-lg p-6 shadow-sm border">
-                  <div className="text-4xl mb-4">🔐</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Private & Secure</h3>
-                  <p className="text-gray-600">Your conversations and data are always protected</p>
-                </div>
-              </div>
+          {/* Gradient background */}
+          <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
 
+          {/* Scroll indicator */}
+          <motion.div 
+            style={{ opacity }}
+            className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+          >
+            <ArrowDown className="h-6 w-6 text-white/50 animate-bounce" />
+          </motion.div>
+
+          {/* Story content */}
+          <div className="relative z-10 px-6 py-32 max-w-3xl mx-auto">
+            {story.map((item, index) => {
+              if (item.type === "heading") {
+                return (
+                  <motion.h2
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="text-white text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] font-normal mb-8 mt-24"
+                  >
+                    {item.text}
+                  </motion.h2>
+                );
+              } else if (item.type === "paragraph") {
+                return (
+                  <motion.p
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="text-white/90 text-xl md:text-2xl leading-relaxed font-[family-name:var(--font-merriweather)] font-light mb-8"
+                  >
+                    {item.text}
+                  </motion.p>
+                );
+              } else if (item.type === "divider") {
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    whileInView={{ 
+                      opacity: 0.3, 
+                      scaleX: 1,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="w-32 h-px bg-white mx-auto my-24"
+                  />
+                );
+              } else if (item.type === "closing") {
+                return (
+                  <motion.p
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="text-white text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] font-normal mb-4 text-center"
+                  >
+                    {item.text}
+                  </motion.p>
+                );
+              } else if (item.type === "question") {
+                return (
+                  <motion.p
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.2,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="text-white/80 text-2xl md:text-3xl font-[family-name:var(--font-merriweather)] font-light italic text-center mt-12"
+                  >
+                    {item.text}
+                  </motion.p>
+                );
+              }
+            })}
+
+            {/* CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ 
+                opacity: 1, 
+                y: 0,
+                transition: {
+                  duration: 1.2,
+                  delay: 0.3,
+                  ease: [0.25, 0.1, 0.25, 1]
+                }
+              }}
+              viewport={{ once: false, margin: "-50px" }}
+              className="mt-32 mb-32 text-center"
+            >
               <Link
                 href="/sign-in"
-                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                className="inline-block px-12 py-5 text-lg font-medium text-black bg-white rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 shadow-2xl"
               >
-                Sign in to claim your profile
+                Begin your journey
               </Link>
-            </div>
-          </main>
+            </motion.div>
+
+            {/* Footer */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ 
+                opacity: 0.5,
+                transition: {
+                  duration: 1.2,
+                  delay: 0.5
+                }
+              }}
+              viewport={{ once: false }}
+              className="text-center text-white/30 text-sm pb-16"
+            >
+              <p>Already have an account?{' '}
+                <Link href="/sign-in" className="underline hover:text-white/50 transition-colors">
+                  Sign in
+                </Link>
+              </p>
+            </motion.div>
+          </div>
         </div>
       </SignedOut>
 
       <SignedIn>
-        <ClerkSignedInComponent>
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">
-              Your Dashboard
-            </h1>
-
-            <div className="grid grid-cols-1 gap-6">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-100">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  💝 Your Daily Match
-                </h2>
-                {todaysMatch ? (
-                  <>
-                    <p className="text-gray-600 mb-4">
-                      You got a new match today!
-                    </p>
-                    <button
-                      onClick={handleViewMatch}
-                      className="w-full bg-purple-600 text-white rounded-md py-2 px-4 hover:bg-purple-700 transition-colors"
-                    >
-                      View Today's Match
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-gray-600 mb-4">
-                      No match yet! Check back in a few hours!
-                    </p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      In the meantime, why don't you update your preferences?
-                    </p>
-                    <Link
-                      href="/profile/edit"
-                      className="block w-full bg-indigo-600 text-white rounded-md py-2 px-4 hover:bg-indigo-700 transition-colors text-center"
-                    >
-                      Update Preferences
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Daily Match Modal */}
-          <DailyMatchModal
-            isOpen={showMatchModal}
-            onOpenChange={setShowMatchModal}
-            match={todaysMatch}
-            targetProfile={todaysMatch?.targetProfile?.[0]}
-          />
-        </ClerkSignedInComponent>
+        <div data-signed-in="true" className="hidden" />
       </SignedIn>
     </>
   );
