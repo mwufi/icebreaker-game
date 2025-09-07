@@ -63,7 +63,7 @@ Remember to:
 Please generate the matches now.`;
 
   const { object } = await generateObject({
-    model: google('gemini-2.0-flash-exp'),
+    model: google('gemini-2.5-flash'),
     schema: matchingResponseSchema,
     prompt,
   });
