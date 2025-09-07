@@ -77,9 +77,34 @@ Features:
    - Explanations for why each match could be meaningful
    - First messages to spark connection
 
+### Upload matches to InstantDB
+
+```bash
+# Upload most recent matches
+bun upload-matches.ts
+
+# Upload specific folder
+bun upload-matches.ts run-2025-09-07-10-30-45
+```
+
+This will:
+1. Read match files from the specified (or most recent) run
+2. Look up profile IDs from InstantDB
+3. Create `dailyConnections` entries for today
+4. Link each connection to both profiles
+5. Include the match explanation and first message
+
+The connection text format:
+```
+💡 Why this match:
+[Explanation of why these two people should connect]
+
+💬 First message:
+"[Suggested first message to send]"
+```
+
 ## Future Features
 
-- Writing matches back to InstantDB (for online mode)
 - Past interaction history consideration
-- Batch processing for all users
 - Match quality scoring
+- Reciprocal match validation
