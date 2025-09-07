@@ -16,11 +16,14 @@ import {
     Zap,
     Edit,
     Unlink,
+    LogOut,
     Snowflake
 } from 'lucide-react';
 import { CommentsList } from './CommentsList';
 import { ProfileCard } from './ProfileCard';
 import Link from 'next/link';
+import { useClerk } from '@clerk/nextjs';
+import { db } from '@/lib/instantdb';
 
 interface GameProfileProps {
     profile: any;
@@ -31,6 +34,7 @@ interface GameProfileProps {
 
 export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfileProps) {
     const [activeTab, setActiveTab] = useState('bio');
+    const { signOut } = useClerk();
 
     // Mock data for now - would come from the profile data
     const level = 6;
@@ -124,11 +128,18 @@ export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfilePr
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={onUnlink}
+                                            onClick={async () => {
+                                                try {
+                                                    await db.auth.signOut();
+                                                    await signOut();
+                                                } catch (error) {
+                                                    console.error('Error signing out:', error);
+                                                }
+                                            }}
                                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
-                                            <Unlink className="h-4 w-4 mr-2" />
-                                            Unlink Profile
+                                            <LogOut className="h-4 w-4 mr-2" />
+                                            Sign Out
                                         </Button>
                                         <Button variant="outline" size="sm" asChild>
                                             <Link href="/profile/edit">

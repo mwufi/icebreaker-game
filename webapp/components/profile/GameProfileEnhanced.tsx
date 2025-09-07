@@ -17,6 +17,7 @@ import {
     Zap,
     Edit,
     Unlink,
+    LogOut,
     Snowflake,
     Save,
     X,
@@ -28,6 +29,7 @@ import { CommentsList } from './CommentsList';
 import Link from 'next/link';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
+import { useClerk } from '@clerk/nextjs';
 
 interface GameProfileProps {
     profile: any;
@@ -44,6 +46,7 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
     const [preferencesText, setPreferencesText] = useState(profile.preferences?.[0]?.lookingFor || '');
     const [showPreferences, setShowPreferences] = useState(true);
     const [saving, setSaving] = useState(false);
+    const { signOut } = useClerk();
 
     // Mock data for now - would come from the profile data
     const level = 6;
@@ -183,11 +186,18 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={onUnlink}
+                                            onClick={async () => {
+                                                try {
+                                                    await db.auth.signOut();
+                                                    await signOut();
+                                                } catch (error) {
+                                                    console.error('Error signing out:', error);
+                                                }
+                                            }}
                                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
-                                            <Unlink className="h-4 w-4 mr-2" />
-                                            Unlink Profile
+                                            <LogOut className="h-4 w-4 mr-2" />
+                                            Sign Out
                                         </Button>
                                     </>
                                 ) : (
