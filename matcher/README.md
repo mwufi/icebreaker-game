@@ -28,7 +28,7 @@ This will:
 3. Use Gemini AI to generate 3 matches for the specified person
 4. Display the results with explanations and first messages
 
-### Generate matches for everyone
+### Generate matches for everyone (parallel)
 
 ```bash
 bun generate-all-matches.ts
@@ -36,15 +36,30 @@ bun generate-all-matches.ts
 
 This will:
 1. Fetch all profiles from InstantDB
-2. Generate matches for every person in the database
-3. Display live progress as each person is processed
-4. Save all results to `all-matches.json`
+2. Generate matches for every person in parallel (5 concurrent workers)
+3. Display live progress with completion counter
+4. Save results to individual files in `matches/run-<timestamp>/`
 
-The output includes:
-- Profile summaries
-- 3 matches per person with explanations
-- First messages to spark connections
-- Generation statistics and timing
+Output structure:
+```
+matches/
+└── run-2025-09-07-10-30-45/
+    ├── _summary.json        # Run summary and statistics
+    ├── john_doe.json        # Individual match results
+    ├── jane_smith.json
+    └── ...
+```
+
+Each match file includes:
+- Profile summary
+- 3 matches with explanations and first messages
+- Generation timestamp
+
+Features:
+- Parallel processing with semaphore (5 concurrent API calls)
+- Automatic progress tracking
+- Error resilience (continues if one profile fails)
+- Performance metrics in summary
 
 ## How it works
 
