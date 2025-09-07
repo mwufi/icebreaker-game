@@ -49,6 +49,7 @@ const _schema = i.schema({
       profileRawHtml: i.string().optional(),
       profileText: i.string().optional(),
       tagline: i.string().optional(),
+      isAdmin: i.boolean().optional(),
     }),
   },
   links: {
