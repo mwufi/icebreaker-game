@@ -69,6 +69,10 @@ export default function Home() {
   const router = useRouter();
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  
+  // Transform scroll position to gradient opacity
+  const orangeOpacity = useTransform(scrollY, [0, 1000, 2000], [1, 0.5, 0]);
+  const blackOpacity = useTransform(scrollY, [0, 1000, 2000], [0, 0.5, 1]);
 
   // Redirect signed-in users to dashboard
   useEffect(() => {
@@ -97,8 +101,15 @@ export default function Home() {
             }}
           />
 
-          {/* Gradient background */}
-          <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
+          {/* Gradient backgrounds with scroll-based transition */}
+          <motion.div 
+            className="fixed inset-0 bg-gradient-to-b from-orange-600/60 via-orange-800/40 to-orange-900/20"
+            style={{ opacity: orangeOpacity }}
+          />
+          <motion.div 
+            className="fixed inset-0 bg-black"
+            style={{ opacity: blackOpacity }}
+          />
 
           {/* Scroll indicator */}
           <motion.div 
