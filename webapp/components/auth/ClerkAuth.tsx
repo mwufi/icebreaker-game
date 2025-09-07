@@ -3,7 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { db } from '@/lib/instantdb';
 import { useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { ResponsiveNavigation } from '@/components/ResponsiveNavigation';
 
 // Use the clerk client name you set in the InstantDB dashboard auth tab
 const CLERK_CLIENT_NAME = process.env.NEXT_PUBLIC_CLERK_CLIENT_NAME || 'clerk';
@@ -43,12 +43,12 @@ export function ClerkSignedInComponent({ children }: { children: React.ReactNode
     }
     if (user) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <Navigation />
-                <main className="p-8">
+            <>
+                <ResponsiveNavigation />
+                <main className="pb-16 md:pb-0">
                     {children}
                 </main>
-            </div>
+            </>
         );
     }
     return (

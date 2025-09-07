@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import Link from 'next/link';
-import { Lock, Sparkles, BookOpen, Heart, Coffee, Music } from 'lucide-react';
+import { Lock, Sparkles, BookOpen, Coffee, Music } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface UnlockedMatch {
