@@ -137,6 +137,12 @@
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+    overscroll-behavior: none;
+  }
+  
+  /* Prevent overscroll on body */
+  body {
+    overscroll-behavior: none;
   }
   
   /* Touch-friendly tap targets */

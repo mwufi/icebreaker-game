@@ -89,7 +89,7 @@ export default function Home() {
   return (
     <>
       <SignedOut>
-        <div className="relative min-h-screen bg-black overflow-hidden">
+        <div className="relative min-h-screen bg-black overflow-hidden" style={{ overscrollBehavior: 'none' }}>
           {/* Grainy texture overlay */}
           <div className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none"
             style={{
