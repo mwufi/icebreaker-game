@@ -24,17 +24,17 @@ async function testGenerateMatch() {
     console.log('✅ Matches generated!\n');
     
     // Display results
-    console.log('=' * 60);
+    console.log('='.repeat(60));
     console.log(`MATCHES FOR: ${targetName}`);
-    console.log('=' * 60);
+    console.log('='.repeat(60));
     console.log(`\nProfile Summary:\n${result.mainProfileSummary}\n`);
-    console.log('-' * 60);
+    console.log('-'.repeat(60));
     
     result.matches.forEach((match, index) => {
       console.log(`\n🔗 Match ${index + 1}: ${match.name}`);
       console.log(`\n💡 Why this match:\n${match.why}`);
       console.log(`\n💬 First message:\n"${match.firstMessageForMain}"`);
-      console.log('\n' + '-' * 60);
+      console.log('\n' + '-'.repeat(60));
     });
     
   } catch (error) {

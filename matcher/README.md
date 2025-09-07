@@ -28,6 +28,24 @@ This will:
 3. Use Gemini AI to generate 3 matches for the specified person
 4. Display the results with explanations and first messages
 
+### Generate matches for everyone
+
+```bash
+bun generate-all-matches.ts
+```
+
+This will:
+1. Fetch all profiles from InstantDB
+2. Generate matches for every person in the database
+3. Display live progress as each person is processed
+4. Save all results to `all-matches.json`
+
+The output includes:
+- Profile summaries
+- 3 matches per person with explanations
+- First messages to spark connections
+- Generation statistics and timing
+
 ## How it works
 
 1. **Data Collection**: The system fetches all user profiles from InstantDB, including names, profile texts, and preferences.
