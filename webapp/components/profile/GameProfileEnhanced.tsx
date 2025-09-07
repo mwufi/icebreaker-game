@@ -7,10 +7,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-    Sparkles, 
-    Calendar, 
-    Activity, 
+import {
+    Sparkles,
+    Calendar,
+    Activity,
     MessageCircle,
     Trophy,
     Star,
@@ -44,13 +44,13 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
     const [preferencesText, setPreferencesText] = useState(profile.preferences?.[0]?.lookingFor || '');
     const [showPreferences, setShowPreferences] = useState(true);
     const [saving, setSaving] = useState(false);
-    
+
     // Mock data for now - would come from the profile data
     const level = 6;
     const currentExp = 65;
     const maxExp = 100;
     const stats = {
-        matches: 15,
+        connections: 15,
         affinity: 31,
         awards: 4
     };
@@ -158,9 +158,9 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                             <div className="flex justify-around w-full max-w-sm pt-2">
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {stats.matches}
+                                        {stats.connections}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">matches</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">connections</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -191,7 +191,7 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                         </Button>
                                     </>
                                 ) : (
-                                    <Button 
+                                    <Button
                                         onClick={onIce}
                                         className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                                     >
@@ -233,7 +233,7 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                 )}
                             </div>
                         </div>
-                        
+
                         {showPreferences && (
                             <>
                                 {isEditingPreferences ? (
@@ -241,7 +241,7 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                         <Textarea
                                             value={preferencesText}
                                             onChange={(e) => setPreferencesText(e.target.value)}
-                                            placeholder="Tell the AI what kind of matches you'd like..."
+                                            placeholder="Tell the AI what kind of connections you'd like..."
                                             className="min-h-[100px]"
                                         />
                                         <div className="flex gap-2 justify-end">
@@ -313,7 +313,7 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                     )}
                                 </div>
                             )}
-                            
+
                             {isEditingBio ? (
                                 <div className="space-y-3">
                                     <Textarea
@@ -345,16 +345,16 @@ export function GameProfileEnhanced({ profile, isOwner, onUnlink, onIce }: GameP
                                     </div>
                                 </div>
                             ) : (
-                                <div 
+                                <div
                                     className="prose dark:prose-invert max-w-none"
-                                    dangerouslySetInnerHTML={{ 
-                                        __html: profile.profileRawHtml || profile.profileText || '<p>No bio yet.</p>' 
+                                    dangerouslySetInnerHTML={{
+                                        __html: profile.profileRawHtml || profile.profileText || '<p>No bio yet.</p>'
                                     }}
                                 />
                             )}
                         </CardContent>
                     </Card>
-                    
+
                     {/* Comments */}
                     <div className="mt-6">
                         <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Comments</h3>

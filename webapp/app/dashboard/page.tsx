@@ -13,7 +13,7 @@ interface UnlockedMatch {
 }
 
 function DashboardContent() {
-  const [unlockedMatches, setUnlockedMatches] = useState<UnlockedMatch>({});
+  const [unlockedConnections, setUnlockedConnections] = useState<UnlockedMatch>({});
   const { user } = db.useAuth();
 
   // Get today's and yesterday's date at midnight for comparison
@@ -23,7 +23,7 @@ function DashboardContent() {
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  // Fetch current user's profile and matches
+  // Fetch current user's profile and connections
   const { data } = db.useQuery({
     $users: {
       $: {
@@ -32,7 +32,7 @@ function DashboardContent() {
         }
       },
       odfProfile: {
-        dailyMatches: {
+        dailyConnections: {
           $: {
             where: {
               date: { $gte: yesterday }
@@ -46,7 +46,7 @@ function DashboardContent() {
 
   const currentUser = data?.$users?.[0];
   const profile = currentUser?.odfProfile?.[0];
-  const matches = profile?.dailyMatches || [];
+  const connections = profile?.dailyConnections || [];
 
   const getInitials = (name: string) => {
     return name
@@ -58,7 +58,7 @@ function DashboardContent() {
   };
 
   const handleUnlock = (matchId: string) => {
-    setUnlockedMatches(prev => ({ ...prev, [matchId]: true }));
+    setUnlockedConnections(prev => ({ ...prev, [matchId]: true }));
   };
 
   // Sample challenges
@@ -80,7 +80,7 @@ function DashboardContent() {
     <div className="relative min-h-screen bg-black overflow-hidden">
       {/* Gradient background */}
       <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
-      
+
       {/* Grainy texture overlay */}
       <div
         className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none z-0"
@@ -103,7 +103,7 @@ function DashboardContent() {
             </h1>
           </motion.div>
 
-          {/* Matches Section */}
+          {/* Connections Section */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,13 +111,13 @@ function DashboardContent() {
             className="space-y-8"
           >
             <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-              Your Matches
+              Your Connections
             </h2>
 
             <div className="space-y-4">
-              {matches.length === 0 ? (
+              {connections.length === 0 ? (
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
-                  <p className="text-white/70">No matches yet today. Check back soon!</p>
+                  <p className="text-white/70">No connections yet today. Check back soon!</p>
                   <Link
                     href="/profile/edit"
                     className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
@@ -126,9 +126,9 @@ function DashboardContent() {
                   </Link>
                 </div>
               ) : (
-                matches.map((match: any, index: number) => {
+                connections.map((match: any, index: number) => {
                   const targetProfile = match.targetProfile?.[0];
-                  const isUnlocked = unlockedMatches[match.id];
+                  const isUnlocked = unlockedConnections[match.id];
                   const challenge = challenges[index % challenges.length];
 
                   return (
@@ -141,7 +141,7 @@ function DashboardContent() {
                     >
                       {/* Unlock animation overlay */}
                       <AnimatePresence>
-                        {unlockedMatches[match.id] && (
+                        {unlockedConnections[match.id] && (
                           <motion.div
                             className="absolute inset-0 pointer-events-none z-20"
                             initial={{ x: '-100%' }}
@@ -237,7 +237,7 @@ function DashboardContent() {
             </h2>
 
             <p className="text-white/70 text-lg">
-              Share more about yourself to improve your matches
+              Share more about yourself to improve your connections
             </p>
 
             <div className="space-y-3">

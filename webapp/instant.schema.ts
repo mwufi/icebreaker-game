@@ -14,7 +14,7 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
     }),
-    dailyMatches: i.entity({
+    dailyConnections: i.entity({
       accepted: i.boolean(),
       date: i.date().optional(),
       otherSideAccepted: i.boolean().optional(),
@@ -52,28 +52,28 @@ const _schema = i.schema({
     }),
   },
   links: {
-    dailyMatchesProfiles: {
+    dailyConnectionsProfiles: {
       forward: {
-        on: "dailyMatches",
+        on: "dailyConnections",
         has: "one",
         label: "profiles",
       },
       reverse: {
         on: "profiles",
         has: "many",
-        label: "dailyMatches",
+        label: "dailyConnections",
       },
     },
-    dailyMatchesTargetProfile: {
+    dailyConnectionsTargetProfile: {
       forward: {
-        on: "dailyMatches",
+        on: "dailyConnections",
         has: "one",
         label: "targetProfile",
       },
       reverse: {
         on: "profiles",
         has: "many",
-        label: "potentialMatches",
+        label: "potentialConnections",
       },
     },
     groupsMembers: {
@@ -179,7 +179,7 @@ const _schema = i.schema({
 
 // This helps Typescript display nicer intellisense
 type _AppSchema = typeof _schema;
-interface AppSchema extends _AppSchema {}
+interface AppSchema extends _AppSchema { }
 const schema: AppSchema = _schema;
 
 export type { AppSchema };

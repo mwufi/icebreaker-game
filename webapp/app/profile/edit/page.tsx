@@ -38,7 +38,7 @@ export default function ProfileEditPage() {
 
   const handleSave = async () => {
     if (!profile) return;
-    
+
     setSaving(true);
     try {
       if (preferences) {
@@ -60,7 +60,7 @@ export default function ProfileEditPage() {
           })
         ]);
       }
-      
+
       router.push('/');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -90,8 +90,8 @@ export default function ProfileEditPage() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border p-8">
           <div className="mb-6">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               ← Back to home
@@ -108,7 +108,7 @@ export default function ProfileEditPage() {
                 What are you looking for? 🎯
               </label>
               <p className="text-sm text-gray-500 mb-3">
-                Tell the AI what kind of matches you'd like. Be as specific or general as you want!
+                Tell the AI what kind of connections you'd like. Be as specific or general as you want!
               </p>
               <textarea
                 id="lookingFor"

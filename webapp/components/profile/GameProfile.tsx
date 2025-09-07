@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-    Sparkles, 
-    Calendar, 
-    Activity, 
+import {
+    Sparkles,
+    Calendar,
+    Activity,
     MessageCircle,
     Trophy,
     Star,
@@ -31,13 +31,13 @@ interface GameProfileProps {
 
 export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfileProps) {
     const [activeTab, setActiveTab] = useState('bio');
-    
+
     // Mock data for now - would come from the profile data
     const level = 6;
     const currentExp = 65;
     const maxExp = 100;
     const stats = {
-        matches: 15,
+        connections: 15,
         affinity: 31,
         awards: 4
     };
@@ -99,9 +99,9 @@ export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfilePr
                             <div className="flex justify-around w-full max-w-sm pt-2">
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {stats.matches}
+                                        {stats.connections}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">matches</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">connections</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -138,7 +138,7 @@ export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfilePr
                                         </Button>
                                     </>
                                 ) : (
-                                    <Button 
+                                    <Button
                                         onClick={onIce}
                                         className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                                     >
@@ -173,10 +173,10 @@ export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfilePr
                     {profile.profileText || profile.profileRawHtml ? (
                         <Card className="border-0 bg-gray-50 dark:bg-gray-900">
                             <CardContent className="p-6">
-                                <div 
+                                <div
                                     className="prose dark:prose-invert max-w-none"
-                                    dangerouslySetInnerHTML={{ 
-                                        __html: profile.profileRawHtml || profile.profileText || '<p>No bio yet.</p>' 
+                                    dangerouslySetInnerHTML={{
+                                        __html: profile.profileRawHtml || profile.profileText || '<p>No bio yet.</p>'
                                     }}
                                 />
                             </CardContent>
@@ -189,7 +189,7 @@ export function GameProfile({ profile, isOwner, onUnlink, onIce }: GameProfilePr
                             </CardContent>
                         </Card>
                     )}
-                    
+
                     {/* Comments */}
                     <div className="mt-6">
                         <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Comments</h3>
