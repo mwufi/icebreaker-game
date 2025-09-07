@@ -9,7 +9,7 @@ import { Home, Users, User, Heart } from 'lucide-react';
 
 export function ResponsiveNavigation() {
     const pathname = usePathname();
-    
+
     const navItems = [
         { href: '/dashboard', icon: Home, label: 'Home' },
         { href: '/dashboard#matches', icon: Heart, label: 'Matches' },
@@ -20,10 +20,10 @@ export function ResponsiveNavigation() {
     return (
         <>
             {/* Desktop Navigation - Top */}
-            <nav className="hidden md:block px-6 py-4 bg-black/50 backdrop-blur-sm border-b border-white/10">
+            <nav className="hidden md:block fixed top-0 left-0 right-0 px-4 py-3 z-50">
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="text-xl font-bold text-white hover:text-white/80 transition-colors">
+                    <div className="flex items-center gap-8">
+                        <Link href="/" className="text-xl font-bold text-white hover:text-white/80 transition-colors flex items-center">
                             SuperSecret
                         </Link>
                     </div>
@@ -46,21 +46,19 @@ export function ResponsiveNavigation() {
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = pathname === item.href;
-                            
+
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all ${
-                                        isActive 
-                                            ? 'text-white' 
-                                            : 'text-white/50 hover:text-white/80'
-                                    }`}
+                                    className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all ${isActive
+                                        ? 'text-white'
+                                        : 'text-white/50 hover:text-white/80'
+                                        }`}
                                 >
-                                    <Icon 
-                                        className={`h-5 w-5 mb-1 ${
-                                            isActive ? 'text-white' : ''
-                                        }`} 
+                                    <Icon
+                                        className={`h-5 w-5 mb-1 ${isActive ? 'text-white' : ''
+                                            }`}
                                     />
                                     <span className="text-xs">{item.label}</span>
                                 </Link>

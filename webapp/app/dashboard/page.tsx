@@ -78,16 +78,16 @@ function DashboardContent() {
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
+      {/* Gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
+      
       {/* Grainy texture overlay */}
       <div
-        className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none"
+        className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none z-0"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`,
         }}
       />
-
-      {/* Gradient background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black" />
 
       {/* Content */}
       <div className="relative z-10 min-h-screen px-6 py-16">
