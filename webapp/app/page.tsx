@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
 import { Navigation } from '@/components/Navigation';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
@@ -7,10 +8,13 @@ import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import { init } from '@instantdb/react';
 import type { AppSchema } from '@/instant.schema';
+import { DailyMatchModal } from '@/components/DailyMatchModal';
+
 const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
 const db = init<AppSchema>({ appId: APP_ID });
 
 export default function Home() {
+  const [showMatchModal, setShowMatchModal] = useState(false);
   const { user } = db.useAuth();
   
   // Get today's and yesterday's date at midnight for comparison
@@ -54,8 +58,7 @@ export default function Home() {
     if (!todaysMatch) {
       return;
     }
-    // Navigate to match page or handle match viewing
-    console.log('Viewing match:', todaysMatch);
+    setShowMatchModal(true);
   };
   return (
     <>
@@ -172,6 +175,14 @@ export default function Home() {
               </div>
             </div>
           </div>
+          
+          {/* Daily Match Modal */}
+          <DailyMatchModal
+            isOpen={showMatchModal}
+            onOpenChange={setShowMatchModal}
+            match={todaysMatch}
+            targetProfile={todaysMatch?.targetProfile?.[0]}
+          />
         </ClerkSignedInComponent>
       </SignedIn>
     </>
