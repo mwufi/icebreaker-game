@@ -7,6 +7,21 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 
+// Simple redirect component
+function DashboardRedirect() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.push('/dashboard');
+  }, [router]);
+  
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-white">Redirecting to dashboard...</div>
+    </div>
+  );
+}
+
 const story = [
   {
     type: "heading",
@@ -66,29 +81,12 @@ const story = [
 ];
 
 export default function Home() {
-  const router = useRouter();
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
   
   // Transform scroll position to gradient opacity
   const orangeOpacity = useTransform(scrollY, [0, 1000, 2000], [1, 0.5, 0]);
   const blackOpacity = useTransform(scrollY, [0, 1000, 2000], [0, 0.5, 1]);
-
-  // Redirect signed-in users to dashboard
-  useEffect(() => {
-    const checkAuth = () => {
-      const authElement = document.querySelector('[data-signed-in="true"]');
-      if (authElement) {
-        router.push('/dashboard');
-      }
-    };
-    
-    // Check immediately and after a short delay
-    checkAuth();
-    const timeout = setTimeout(checkAuth, 100);
-    
-    return () => clearTimeout(timeout);
-  }, [router]);
 
   return (
     <>
@@ -270,7 +268,7 @@ export default function Home() {
       </SignedOut>
 
       <SignedIn>
-        <div data-signed-in="true" className="hidden" />
+        <DashboardRedirect />
       </SignedIn>
     </>
   );
