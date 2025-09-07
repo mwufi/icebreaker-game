@@ -97,8 +97,8 @@ export function DailyMatchModal({ isOpen, onOpenChange, match, targetProfile }: 
                 <Sparkles className="h-6 w-6 text-yellow-500 absolute -top-1 -right-1 animate-bounce" />
               </div>
             </div>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              It's a Match! 💖
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent text-center">
+              It's a Match!
             </DialogTitle>
           </DialogHeader>
 
@@ -159,13 +159,6 @@ export function DailyMatchModal({ isOpen, onOpenChange, match, targetProfile }: 
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Message Later
               </Button>
-            </div>
-
-            {/* Status Info */}
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                {match?.accepted ? '✅ You accepted this match' : '⏳ Pending your response'}
-              </p>
             </div>
           </div>
         </div>
