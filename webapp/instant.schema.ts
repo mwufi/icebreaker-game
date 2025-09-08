@@ -3,7 +3,7 @@
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
-  // We inferred 2 attributes!
+  // We inferred 4 attributes!
   // Take a look at this schema, and if everything looks good,
   // run `push schema` again to enforce the types.
   entities: {
@@ -14,11 +14,17 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
     }),
+    activityQuestions: i.entity({
+      isCreatedbySystem: i.boolean().optional(),
+      isActive: i.boolean().optional(),
+      questionText: i.string().unique().indexed(),
+      tags: i.string().optional(),
+    }),
     dailyConnections: i.entity({
-      accepted: i.boolean(),
-      date: i.date().optional(),
+      accepted: i.boolean().optional(),
+      date: i.date().indexed(),
       otherSideAccepted: i.boolean().optional(),
-      text: i.any().optional(),
+      text: i.string(),
     }),
     groups: i.entity({
       name: i.string().indexed(),
@@ -29,7 +35,7 @@ const _schema = i.schema({
       fulfilledAt: i.date().optional(),
     }),
     preferences: i.entity({
-      lookingFor: i.any().optional(),
+      lookingFor: i.string().optional(),
     }),
     profileComments: i.entity({
       authorHref: i.string().optional(),
@@ -44,12 +50,12 @@ const _schema = i.schema({
     }),
     profiles: i.entity({
       createdAt: i.number(),
+      isAdmin: i.boolean().indexed().optional(),
       name: i.string().unique().indexed(),
       profilePicUrl: i.string().optional(),
       profileRawHtml: i.string().optional(),
       profileText: i.string().optional(),
       tagline: i.string().optional(),
-      isAdmin: i.boolean().optional(),
     }),
   },
   links: {
@@ -160,6 +166,18 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "comments",
+      },
+    },
+    profileCommentsProfileLink: {
+      forward: {
+        on: "profileComments",
+        has: "many",
+        label: "profileLink",
+      },
+      reverse: {
+        on: "profileLink",
+        has: "many",
+        label: "profileComments",
       },
     },
     profilesLinkedUser: {

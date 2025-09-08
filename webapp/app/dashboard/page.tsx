@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import Link from 'next/link';
-import { Lock, Sparkles, BookOpen, Coffee, Music } from 'lucide-react';
+import { Lock, Sparkles, BookOpen, Coffee, Music, Tag } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface UnlockedMatch {
@@ -23,7 +23,7 @@ function DashboardContent() {
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  // Fetch current user's profile and connections
+  // Fetch current user's profile, connections, and active questions
   const { data } = db.useQuery({
     $users: {
       $: {
@@ -41,12 +41,20 @@ function DashboardContent() {
           targetProfile: {}
         }
       }
+    },
+    activityQuestions: {
+      $: {
+        where: {
+          isActive: true
+        }
+      }
     }
   });
 
   const currentUser = data?.$users?.[0];
   const profile = currentUser?.odfProfile?.[0];
   const connections = profile?.dailyConnections || [];
+  const activeQuestions = data?.activityQuestions || [];
 
   const getInitials = (name: string) => {
     return name
@@ -70,11 +78,14 @@ function DashboardContent() {
     "Learn about their favorite coffee order"
   ];
 
-  const activities = [
-    { icon: BookOpen, text: "Tell us about your favorite book", link: "/activities/book" },
-    { icon: Coffee, text: "What's your ideal morning routine?", link: "/activities/morning" },
-    { icon: Music, text: "Share your go-to playlist", link: "/activities/music" },
-  ];
+  // Map questions to icons based on tags
+  const getIconForTag = (tags: string) => {
+    const tagLower = tags?.toLowerCase() || '';
+    if (tagLower.includes('personal')) return BookOpen;
+    if (tagLower.includes('dream')) return Sparkles;
+    if (tagLower.includes('values') || tagLower.includes('company')) return Coffee;
+    return Music; // default icon
+  };
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
@@ -241,27 +252,43 @@ function DashboardContent() {
             </p>
 
             <div className="space-y-3">
-              {activities.map((activity, index) => {
-                const Icon = activity.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                  >
-                    <Link
-                      href={activity.link}
-                      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
+              {activeQuestions.length === 0 ? (
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
+                  <p className="text-white/70">No activities available right now. Check back soon!</p>
+                </div>
+              ) : (
+                activeQuestions.map((question: any, index: number) => {
+                  const Icon = getIconForTag(question.tags);
+                  return (
+                    <motion.div
+                      key={question.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
                     >
-                      <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
-                      <span className="text-white/70 group-hover:text-white/90 transition-colors">
-                        {activity.text}
-                      </span>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+                      <Link
+                        href={`/activity/${question.id}`}
+                        className="flex flex-col gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
+                          <span className="text-white/70 group-hover:text-white/90 transition-colors">
+                            {question.questionText}
+                          </span>
+                        </div>
+                        {question.tags && (
+                          <div className="flex items-center gap-2 ml-9">
+                            <Tag className="h-3 w-3 text-white/30" />
+                            <span className="text-xs text-white/30">
+                              {question.tags.split(',').map((tag: string) => tag.trim()).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                      </Link>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </motion.section>
 
