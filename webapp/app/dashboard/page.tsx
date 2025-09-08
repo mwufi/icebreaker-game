@@ -195,7 +195,7 @@ function DashboardContent() {
                                 </h3>
 
                                 {match.text && (
-                                  <p className="text-white/70 text-sm leading-relaxed">
+                                  <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
                                     {match.text}
                                   </p>
                                 )}
