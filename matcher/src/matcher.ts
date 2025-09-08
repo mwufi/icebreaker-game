@@ -51,7 +51,7 @@ I have the following profiles data:
 
 ${contextContent}
 
-What we're going to do is create ${matchCount} intriguing matches (or possibilities for connection? contrast? generativity?) for each person. To start, I'll be giving you some names, and for each person X, your job is to give me the ${matchCount} matches for that person, as well as why, and the first message we can show X so that they know.
+What we're going to do is create ${matchCount} intriguing matches (or possibilities for connection? contrast? generativity?) out of this context, for one specific person. Your job is to give me the ${matchCount} matches for this person, as well as why, and the first message that this person can give to their match to initiate the conversation.
 
 Only provide matches for this person: ${targetName}
 
@@ -60,12 +60,12 @@ Remember to:
 2. Look for resonance, compatible lenses, or intriguing contrasts
 3. Focus on shared thoughts, perspectives, and ways of seeing the world
 4. Create matches that could lead to meaningful conversations and connections
-5. The first message should intrigue the main person and give them insight into why this could be a special connection
+5. The first message should intrigue the potential match and give them insight into why this could be a special connection
 
 Please generate the matches now.`;
 
   const { object } = await generateObject({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-2.5-pro'),
     schema: createMatchingResponseSchema(matchCount),
     prompt,
   });
