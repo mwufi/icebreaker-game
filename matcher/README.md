@@ -77,6 +77,20 @@ Features:
    - Explanations for why each match could be meaningful
    - First messages to spark connection
 
+### Generate custom matches (10 matches)
+
+```bash
+bun generate-custom-matches.ts "Person Name"
+```
+
+This will:
+1. Generate 10 matches for the specified person
+2. Save to `matches/custom-<timestamp>/`
+3. Display all matches with explanations
+4. Ready for upload using the upload-matches script
+
+Note: The custom prompt can be modified in the script when needed.
+
 ### Upload matches to InstantDB
 
 ```bash

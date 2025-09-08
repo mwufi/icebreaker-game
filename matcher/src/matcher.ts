@@ -14,18 +14,20 @@ if (!apiKey) {
   throw new Error("GOOGLE_GENERATIVE_AI_API_KEY must be set in .env file");
 }
 
-const matchingResponseSchema = z.object({
-  mainProfileSummary: z.string().describe('Detailed summary of the main profile being matched'),
-  matches: z.array(
-    z.object({
-      name: z.string().describe('Name of the matched person'),
-      why: z.string().describe('Detailed reasoning for this match'),
-      firstMessageForMain: z.string().describe('First message to show the main person about this match'),
-    })
-  ).length(3).describe('Exactly 3 matches for the main person'),
-});
+function createMatchingResponseSchema(matchCount: number) {
+  return z.object({
+    mainProfileSummary: z.string().describe('Detailed summary of the main profile being matched'),
+    matches: z.array(
+      z.object({
+        name: z.string().describe('Name of the matched person'),
+        why: z.string().describe('Detailed reasoning for this match'),
+        firstMessageForMain: z.string().describe('First message to show the main person about this match'),
+      })
+    ).length(matchCount).describe(`Exactly ${matchCount} matches for the main person`),
+  });
+}
 
-export async function generateMatch(targetName: string, contextPath?: string): Promise<MatchingResponse> {
+export async function generateMatch(targetName: string, contextPath?: string, matchCount: number = 3, customPrompt?: string): Promise<MatchingResponse> {
   const contextFilePath = contextPath || path.join(process.cwd(), 'context.json');
   const contextContent = await readFile(contextFilePath, 'utf-8');
   const profiles: Profile[] = JSON.parse(contextContent);
@@ -41,7 +43,7 @@ export async function generateMatch(targetName: string, contextPath?: string): P
     return '';
   }).join('\n\n');
   
-  const prompt = `Based on the SuperSecret app's story and philosophy:
+  const prompt = customPrompt || `Based on the SuperSecret app's story and philosophy:
 
 ${storyText}
 
@@ -49,7 +51,7 @@ I have the following profiles data:
 
 ${contextContent}
 
-What we're going to do is create 3 intriguing matches (or possibilities for connection? contrast? generativity?) for each person. To start, I'll be giving you some names, and for each person X, your job is to give me the 3 matches for that person, as well as why, and the first message we can show X so that they know.
+What we're going to do is create ${matchCount} intriguing matches (or possibilities for connection? contrast? generativity?) for each person. To start, I'll be giving you some names, and for each person X, your job is to give me the ${matchCount} matches for that person, as well as why, and the first message we can show X so that they know.
 
 Only provide matches for this person: ${targetName}
 
@@ -64,7 +66,7 @@ Please generate the matches now.`;
 
   const { object } = await generateObject({
     model: google('gemini-2.5-flash'),
-    schema: matchingResponseSchema,
+    schema: createMatchingResponseSchema(matchCount),
     prompt,
   });
   
