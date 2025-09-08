@@ -275,7 +275,7 @@ function ReviewContent() {
                                 {targetProfile?.name || 'Unknown User'}
                               </p>
                               {connection.text && (
-                                <p className="text-white/60 text-sm mt-1">{connection.text}</p>
+                                <p className="text-white/60 text-sm mt-1 whitespace-pre-wrap">{connection.text}</p>
                               )}
                             </div>
                           </div>
