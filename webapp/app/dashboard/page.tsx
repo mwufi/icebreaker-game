@@ -142,6 +142,46 @@ function DashboardContent() {
             </h1>
           </motion.div>
 
+          {/* Game Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+          >
+            <Link href="/games/1">
+              <div className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+                {/* Soft gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/80 via-pink-500/80 to-orange-500/80" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 via-transparent to-yellow-500/20" />
+                
+                {/* Content */}
+                <div className="relative p-8 md:p-12">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-3">
+                      <h3 className="text-2xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white">
+                        60 Second Challenge
+                      </h3>
+                      <p className="text-white/90 text-lg">
+                        Record yourself answering today's prompts
+                      </p>
+                      <p className="text-white/70 text-sm">
+                        Complete to unlock a special prize ✨
+                      </p>
+                    </div>
+                    <div className="hidden md:block">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                        <ArrowRight className="h-8 w-8 text-white group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Shimmer effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+              </div>
+            </Link>
+          </motion.div>
+
           {/* Connections Section - Full Width */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
