@@ -298,8 +298,8 @@ function GameContent() {
                       <button
                         onClick={() => setInputMode('audio')}
                         className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${inputMode === 'audio'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-white/10 text-white/70 hover:bg-white/20'
                           }`}
                       >
                         <Mic className="h-4 w-4" />
