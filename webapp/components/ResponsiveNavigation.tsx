@@ -12,8 +12,7 @@ export function ResponsiveNavigation() {
 
     const navItems = [
         { href: '/dashboard', icon: Home, label: 'Home' },
-        { href: '/dashboard#connections', icon: Heart, label: 'Connections' },
-        { href: '/community', icon: Users, label: 'Community' },
+        { href: '/connections', icon: Heart, label: 'Connections' },
         { href: '/profile', icon: User, label: 'Profile' },
     ];
 

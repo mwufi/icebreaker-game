@@ -6,15 +6,26 @@ import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import Link from 'next/link';
-import { Sparkles, BookOpen, Coffee, Music, Send, Loader2 } from 'lucide-react';
+import { Sparkles, BookOpen, Coffee, Music, Send, Loader2, ArrowRight } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding/Onboarding';
 import { MatchCarousel } from '@/components/dashboard/MatchCarousel';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 function DashboardContent() {
   const [userAnswers, setUserAnswers] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = db.useAuth();
 
   // Fetch current user's profile, connections, and active questions
@@ -77,6 +88,7 @@ function DashboardContent() {
       ]);
 
       setSubmitted(true);
+      setDrawerOpen(false);
 
     } catch (error) {
       console.error('Error submitting answers:', error);
@@ -138,7 +150,7 @@ function DashboardContent() {
             className="space-y-8"
           >
             <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
-              Your Connections
+              Today's Connections
             </h2>
 
             {connections.length === 0 ? (
@@ -156,125 +168,132 @@ function DashboardContent() {
             )}
           </motion.section>
 
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Activities Section */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="space-y-8 md:col-span-2"
-            >
-              <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
-                Tell us more about you
-              </h2>
+          {/* Get Better Connections Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex justify-center"
+          >
+            <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+              <DrawerTrigger asChild>
+                <button className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3">
+                  <span className="text-lg">Get Better Connections</span>
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[90vh] bg-black border-white/10">
+                <DrawerHeader className="text-center">
+                  <DrawerTitle className="text-2xl font-[family-name:var(--font-merriweather)] text-white">
+                    Tell us more about you
+                  </DrawerTitle> 
+                  <DrawerDescription className="text-white/70 mt-2">
+                    Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
+                  </DrawerDescription>
+                </DrawerHeader>
 
-              <p className="text-white/70">
-                Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
-              </p>
-
-              {activeQuestions.length === 0 ? (
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
-                  <p className="text-white/70">No activities available right now. Check back soon!</p>
-                </div>
-              ) : submitted ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center"
-                >
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                      <Send className="h-8 w-8 text-green-400" />
+                <div className="px-4 pb-8 overflow-y-auto">
+                  {activeQuestions.length === 0 ? (
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
+                      <p className="text-white/70">No activities available right now. Check back soon!</p>
                     </div>
-                    <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
-                      Thank you for sharing!
-                    </h3>
-                    <p className="text-white/70">
-                      Your answers will help us find better matches for you.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setSubmitted(false);
-                        setUserAnswers('');
-                      }}
-                      className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                  ) : submitted ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center"
                     >
-                      Answer Again
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
-                >
-                  {/* Questions List */}
-                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                    <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
-                      Questions to answer:
-                    </h3>
-                    <ul className="space-y-3">
-                      {activeQuestions.map((question: any, index: number) => {
-                        const Icon = getIconForTag(question.tags);
-                        return (
-                          <motion.li
-                            key={question.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="flex items-start gap-3"
+                      <div className="space-y-4">
+                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                          <Send className="h-8 w-8 text-green-400" />
+                        </div>
+                        <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                          Thank you for sharing!
+                        </h3>
+                        <p className="text-white/70">
+                          Your answers will help us find better matches for you.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setSubmitted(false);
+                            setUserAnswers('');
+                          }}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                        >
+                          Answer Again
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Questions List */}
+                      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                        <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
+                          Questions to answer:
+                        </h3>
+                        <ul className="space-y-3">
+                          {activeQuestions.map((question: any, index: number) => {
+                            const Icon = getIconForTag(question.tags);
+                            return (
+                              <motion.li
+                                key={question.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="flex items-start gap-3"
+                              >
+                                <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
+                                <span className="text-white/80 text-sm leading-relaxed">
+                                  {question.questionText}
+                                </span>
+                              </motion.li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+
+                      {/* Answer Form */}
+                      <form onSubmit={handleSubmitAnswers} className="space-y-4">
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                          <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
+                            Your answers:
+                          </label>
+                          <textarea
+                            id="answers"
+                            value={userAnswers}
+                            onChange={(e) => setUserAnswers(e.target.value)}
+                            placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
+                            className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button
+                            type="submit"
+                            disabled={!userAnswers.trim() || isSubmitting}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
-                            <span className="text-white/80 text-sm leading-relaxed">
-                              {question.questionText}
-                            </span>
-                          </motion.li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-
-                  {/* Answer Form */}
-                  <form onSubmit={handleSubmitAnswers} className="space-y-4">
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                      <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
-                        Your answers:
-                      </label>
-                      <textarea
-                        id="answers"
-                        value={userAnswers}
-                        onChange={(e) => setUserAnswers(e.target.value)}
-                        placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
-                        className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
-                        disabled={isSubmitting}
-                      />
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4" />
+                                Submit Answers
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </form>
                     </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        disabled={!userAnswers.trim() || isSubmitting}
-                        className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Submitting...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4" />
-                            Submit Answers
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </motion.div>
-              )}
-            </motion.section>
-          </div>
+                  )}
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </motion.div>
 
           {/* Footer */}
           <motion.div

@@ -116,6 +116,7 @@ function ProfileContent() {
     if (linkedProfile) {
         return (
             <>
+            <div className="mt-10"></div>
                 <GameProfileEnhanced 
                     profile={linkedProfile}
                     isOwner={true}
