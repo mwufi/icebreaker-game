@@ -158,10 +158,10 @@ function DashboardContent() {
                 <div className="relative p-8 md:p-12">
                   <div className="flex items-center justify-between">
                     <div className="space-y-3">
-                      <h3 className="text-2xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white">
+                      <h3 className="text-xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white">
                         60 Second Challenge
                       </h3>
-                      <p className="text-white/90 text-lg">
+                      <p className="text-white/90">
                         Answer today’s prompts for better matches tomorrow
                       </p>
                     </div>
