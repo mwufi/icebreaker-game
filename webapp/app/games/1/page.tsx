@@ -284,13 +284,18 @@ function GameContent() {
                               className="flex items-start gap-3"
                             >
                               <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
-                              <span className="text-white/80 text-sm leading-relaxed">
+                              <span className="text-white/80 leading-relaxed">
                                 {question.questionText}
                               </span>
                             </motion.li>
                           );
                         })}
                       </ul>
+                      <div className="mt-4">
+                        <p className="text-white/70 mb-4">
+                          Or pick your own topic. How do you want to connect?
+                        </p>
+                      </div>
                     </div>
 
                     {/* Input Mode Selector */}
