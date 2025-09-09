@@ -6,18 +6,15 @@ import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import Link from 'next/link';
-import { Lock, Sparkles, BookOpen, Coffee, Music, Tag, Send, Loader2 } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-
-interface UnlockedMatch {
-  [key: string]: boolean;
-}
+import { Sparkles, BookOpen, Coffee, Music, Send, Loader2 } from 'lucide-react';
+import { Onboarding } from '@/components/onboarding/Onboarding';
+import { MatchCarousel } from '@/components/dashboard/MatchCarousel';
 
 function DashboardContent() {
-  const [unlockedConnections, setUnlockedConnections] = useState<UnlockedMatch>({});
   const [userAnswers, setUserAnswers] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { user } = db.useAuth();
 
   // Fetch current user's profile, connections, and active questions
@@ -52,18 +49,11 @@ function DashboardContent() {
   const connections = allConnections.slice(0, 5); // Show only top 5
   const activeQuestions = data?.activityQuestions || [];
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  // Show onboarding if user doesn't have a profile
+  if (!profile && !showOnboarding && user) {
+    return <Onboarding user={user} onComplete={() => window.location.reload()} />;
+  }
 
-  const handleUnlock = (matchId: string) => {
-    setUnlockedConnections(prev => ({ ...prev, [matchId]: true }));
-  };
 
   const handleSubmitAnswers = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,136 +130,39 @@ function DashboardContent() {
             </h1>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          {/* Connections Section - Full Width */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+              Your Connections
+            </h2>
 
-            {/* Connections Section */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-8"
-            >
-              <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-                Your Connections
-              </h2>
-
-              <div className="space-y-4">
-                {connections.length === 0 ? (
-                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
-                    <p className="text-white/70">No connections yet. Check back soon!</p>
-                    <Link
-                      href="/profile/edit"
-                      className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
-                    >
-                      Update your preferences →
-                    </Link>
-                  </div>
-                ) : (
-                  connections.map((match: any, index: number) => {
-                    const targetProfile = match.targetProfile?.[0];
-                    const isUnlocked = unlockedConnections[match.id];
-                    const challenge = challenges[index % challenges.length];
-
-                    return (
-                      <motion.div
-                        key={match.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                        className="relative overflow-hidden"
-                      >
-                        {/* Unlock animation overlay */}
-                        <AnimatePresence>
-                          {unlockedConnections[match.id] && (
-                            <motion.div
-                              className="absolute inset-0 pointer-events-none z-20"
-                              initial={{ x: '-100%' }}
-                              animate={{ x: '100%' }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.8, ease: 'easeInOut' }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent skew-x-12" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div className={`
-                        relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6
-                        transition-all duration-500
-                        ${isUnlocked ? 'bg-white/10' : 'hover:bg-white/10'}
-                      `}>
-                          {!isUnlocked ? (
-                            // Locked state
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <Lock className="h-5 w-5 text-white/50" />
-                                <p className="text-white/70">New match available</p>
-                              </div>
-                              <button
-                                onClick={() => handleUnlock(match.id)}
-                                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
-                              >
-                                Unlock
-                              </button>
-                            </div>
-                          ) : (
-                            // Unlocked state
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.5 }}
-                              className="space-y-4"
-                            >
-                              <div className="flex items-start gap-4">
-                                <Avatar className="h-12 w-12 border border-white/20">
-                                  <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
-                                  <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
-                                    {targetProfile ? getInitials(targetProfile.name) : '?'}
-                                  </AvatarFallback>
-                                </Avatar>
-
-                                <div className="flex-1 space-y-2">
-                                  <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
-                                    {targetProfile?.name || 'Mystery Match'}
-                                  </h3>
-
-                                  {match.text && (
-                                    <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
-                                      {match.text}
-                                    </p>
-                                  )}
-
-                                  <div className="flex items-center gap-2 pt-2">
-                                    <Sparkles className="h-4 w-4 text-yellow-500/70" />
-                                    <p className="text-yellow-500/70 text-sm italic">
-                                      Challenge: {challenge}
-                                    </p>
-                                  </div>
-
-                                  <Link
-                                    href={`/profiles/${targetProfile?.id}`}
-                                    className="inline-block mt-2 text-sm text-white/50 hover:text-white/70 transition-colors"
-                                  >
-                                    View full profile →
-                                  </Link>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                )}
+            {connections.length === 0 ? (
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
+                <p className="text-white/70">No connections yet. Check back soon!</p>
+                <Link
+                  href="/profile/edit"
+                  className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
+                >
+                  Update your preferences →
+                </Link>
               </div>
-            </motion.section>
+            ) : (
+              <MatchCarousel connections={connections} challenges={challenges} />
+            )}
+          </motion.section>
 
+          <div className="grid md:grid-cols-2 gap-12">
             {/* Activities Section */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="space-y-8"
+              className="space-y-8 md:col-span-2"
             >
               <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
                 Tell us more about you
