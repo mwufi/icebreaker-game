@@ -19,7 +19,12 @@ interface MatchCarouselProps {
 }
 
 export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'center' });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'center',
+    skipSnaps: false,
+    containScroll: 'trimSnaps'
+  });
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
@@ -38,7 +43,19 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
     onSelect();
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
+    
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
   }, [emblaApi, onSelect]);
+
+  // Force reinitialization when connections change
+  useEffect(() => {
+    if (emblaApi) {
+      emblaApi.reInit();
+    }
+  }, [emblaApi, connections.length]);
 
   const getInitials = (name: string) => {
     return name

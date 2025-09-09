@@ -149,9 +149,20 @@ function DashboardContent() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-8"
           >
-            <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
-              Today's Connections
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
+                Today's Connections
+              </h2>
+              {connections.length > 0 && (
+                <Link
+                  href="/connections"
+                  className="text-white/50 hover:text-white/70 text-sm transition-colors flex items-center gap-1"
+                >
+                  View all connections
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
 
             {connections.length === 0 ? (
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
