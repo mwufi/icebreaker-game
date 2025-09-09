@@ -125,7 +125,7 @@ function DashboardContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] text-white">
+            <h1 className="text-2xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white">
               Welcome, {profile?.name?.split(' ')[0] || 'Friend'}
             </h1>
           </motion.div>
@@ -137,7 +137,7 @@ function DashboardContent() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-8"
           >
-            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+            <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
               Your Connections
             </h2>
 
@@ -164,11 +164,11 @@ function DashboardContent() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="space-y-8 md:col-span-2"
             >
-              <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+              <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
                 Tell us more about you
               </h2>
 
-              <p className="text-white/70 text-lg">
+              <p className="text-white/70">
                 Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
               </p>
 
