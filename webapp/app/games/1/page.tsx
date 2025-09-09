@@ -239,7 +239,7 @@ function GameContent() {
                 <div className="flex justify-center">
                   <button
                     onClick={() => setScreen('main')}
-                    className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-medium rounded-full transition-all"
                   >
                     Get Started
                   </button>
@@ -297,20 +297,19 @@ function GameContent() {
                     <div className="flex justify-center gap-4">
                       <button
                         onClick={() => setInputMode('audio')}
-                        className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${
-                          inputMode === 'audio' 
-                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                        className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${inputMode === 'audio'
+                            ? 'bg-white/20 text-white'
                             : 'bg-white/10 text-white/70 hover:bg-white/20'
-                        }`}
+                          }`}
                       >
                         <Mic className="h-4 w-4" />
-                        Record Audio (60s)
+                        Talk
                       </button>
                       <button
                         onClick={() => setInputMode('text')}
                         className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${inputMode === 'text'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-white/10 text-white/60 hover:bg-white/20'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-white/10 text-white/60 hover:bg-white/20'
                           }`}
                       >
                         <Keyboard className="h-4 w-4" />
@@ -345,15 +344,15 @@ function GameContent() {
                           {!audioBlob ? (
                             <button
                               onClick={isRecording ? stopRecording : startRecording}
-                              className={`p-6 rounded-full transition-all transform hover:scale-105 ${isRecording
-                                  ? 'bg-red-500 hover:bg-red-600'
-                                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                                } text-white shadow-lg hover:shadow-xl`}
+                              className={`p-4 rounded-full transition-all ${isRecording
+                                ? 'bg-red-500/80 hover:bg-red-500 text-white'
+                                : 'bg-purple-300/20 hover:bg-white/20 text-white/70 hover:text-white border border-white/20'
+                                }`}
                             >
                               {isRecording ? (
-                                <MicOff className="h-8 w-8" />
+                                <MicOff className="h-6 w-6" />
                               ) : (
-                                <Mic className="h-8 w-8" />
+                                <Mic className="h-6 w-6" />
                               )}
                             </button>
                           ) : (
