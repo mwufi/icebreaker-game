@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight, Sparkles, BookOpen, Coffee, Heart, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ConnectionModal } from './ConnectionModal';
 
@@ -20,17 +20,29 @@ interface MatchCarouselProps {
 
 export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: true, 
-    align: 'center',
+    loop: connections.length > 3,
+    align: 'start',
     skipSnaps: false,
-    containScroll: 'trimSnaps'
+    dragFree: true
   });
+  
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+  // Ensure component is mounted before rendering carousel
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -40,22 +52,16 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
 
   useEffect(() => {
     if (!emblaApi) return;
+
     onSelect();
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
-    
+
     return () => {
       emblaApi.off('select', onSelect);
       emblaApi.off('reInit', onSelect);
     };
   }, [emblaApi, onSelect]);
-
-  // Force reinitialization when connections change
-  useEffect(() => {
-    if (emblaApi) {
-      emblaApi.reInit();
-    }
-  }, [emblaApi, connections.length]);
 
   const getInitials = (name: string) => {
     return name
@@ -66,76 +72,90 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
       .slice(0, 2);
   };
 
+  // Don't render anything if no connections or not mounted
+  if (!mounted || !connections || connections.length === 0) {
+    return null;
+  }
+
   return (
     <>
       <div className="relative">
         <div className="overflow-hidden rounded-xl" ref={emblaRef}>
-          <div className="flex gap-4">
-            {connections.map((connection, index) => {
-              const targetProfile = connection.targetProfile?.[0];
-              const challenge = challenges[index % challenges.length];
+          <div className="flex">
+            <AnimatePresence mode="sync">
+              {connections.map((connection, index) => {
+                const targetProfile = connection.targetProfile?.[0];
+                const challenge = challenges[index % challenges.length];
 
-              return (
-                <motion.div
-                  key={connection.id}
-                  className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] px-2"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <div 
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all"
-                    onClick={() => setSelectedConnection(connection)}
+                return (
+                  <motion.div
+                    key={`${connection.id}`}
+                    className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 first:pl-0"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ 
+                      duration: 0.3,
+                      delay: index * 0.05
+                    }}
                   >
-                    <div className="flex flex-col items-center space-y-4">
-                      <Avatar className="h-24 w-24 border-2 border-white/20">
-                        <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white text-2xl">
-                          {targetProfile ? getInitials(targetProfile.name) : '?'}
-                        </AvatarFallback>
-                      </Avatar>
+                    <div 
+                      className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all h-full"
+                      onClick={() => setSelectedConnection(connection)}
+                    >
+                      <div className="flex flex-col items-center space-y-4 h-full">
+                        <Avatar className="h-24 w-24 border-2 border-white/20">
+                          <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
+                          <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white text-2xl">
+                            {targetProfile ? getInitials(targetProfile.name) : '?'}
+                          </AvatarFallback>
+                        </Avatar>
 
-                      <div className="text-center space-y-2">
-                        <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
-                          {targetProfile?.name || 'Mystery Match'}
-                        </h3>
+                        <div className="text-center space-y-2 flex-1 flex flex-col">
+                          <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                            {targetProfile?.name || 'Mystery Match'}
+                          </h3>
 
-                        {targetProfile?.tagline && (
-                          <p className="text-white/60 text-sm">
-                            {targetProfile.tagline}
-                          </p>
-                        )}
+                          {targetProfile?.tagline && (
+                            <p className="text-white/60 text-sm line-clamp-2">
+                              {targetProfile.tagline}
+                            </p>
+                          )}
 
-                        <div className="flex items-center justify-center gap-2 pt-2">
-                          <Sparkles className="h-4 w-4 text-yellow-500/70" />
-                          <p className="text-yellow-500/70 text-sm italic">
-                            {challenge}
-                          </p>
+                          <div className="flex items-center justify-center gap-2 pt-2">
+                            <Sparkles className="h-4 w-4 text-yellow-500/70" />
+                            <p className="text-yellow-500/70 text-sm italic">
+                              {challenge}
+                            </p>
+                          </div>
+
+                          {connection.text && (
+                            <p className="text-white/70 text-sm text-center line-clamp-3 mt-auto">
+                              {connection.text}
+                            </p>
+                          )}
                         </div>
+
+                        <button className="mt-2 text-sm text-white/50 hover:text-white/70 transition-colors">
+                          View details →
+                        </button>
                       </div>
-
-                      {connection.text && (
-                        <p className="text-white/70 text-sm text-center line-clamp-3">
-                          {connection.text}
-                        </p>
-                      )}
-
-                      <button className="mt-2 text-sm text-white/50 hover:text-white/70 transition-colors">
-                        View details →
-                      </button>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         </div>
 
-        {connections.length > 1 && (
+        {/* Navigation buttons - only show if more than 3 connections on desktop or more than 1 on mobile */}
+        {((connections.length > 3) || (connections.length > 1 && typeof window !== 'undefined' && window.innerWidth < 640)) && (
           <>
             <button
               onClick={scrollPrev}
               disabled={!canScrollPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+              aria-label="Previous connection"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -143,7 +163,8 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
             <button
               onClick={scrollNext}
               disabled={!canScrollNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+              aria-label="Next connection"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -151,12 +172,14 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
         )}
       </div>
 
-      {selectedConnection && (
-        <ConnectionModal
-          connection={selectedConnection}
-          onClose={() => setSelectedConnection(null)}
-        />
-      )}
+      <AnimatePresence>
+        {selectedConnection && (
+          <ConnectionModal
+            connection={selectedConnection}
+            onClose={() => setSelectedConnection(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
