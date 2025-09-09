@@ -20,13 +20,6 @@ function DashboardContent() {
   const [submitted, setSubmitted] = useState(false);
   const { user } = db.useAuth();
 
-  // Get today's and yesterday's date at midnight for comparison
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
   // Fetch current user's profile, connections, and active questions
   const { data } = db.useQuery({
     $users: {
@@ -38,9 +31,7 @@ function DashboardContent() {
       odfProfile: {
         dailyConnections: {
           $: {
-            where: {
-              date: { $gte: yesterday }
-            }
+            order: { date: 'desc' }
           },
           targetProfile: {}
         }
@@ -57,7 +48,8 @@ function DashboardContent() {
 
   const currentUser = data?.$users?.[0];
   const profile = currentUser?.odfProfile?.[0];
-  const connections = profile?.dailyConnections || [];
+  const allConnections = profile?.dailyConnections || [];
+  const connections = allConnections.slice(0, 5); // Show only top 5
   const activeQuestions = data?.activityQuestions || [];
 
   const getInitials = (name: string) => {
@@ -164,7 +156,7 @@ function DashboardContent() {
               <div className="space-y-4">
                 {connections.length === 0 ? (
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
-                    <p className="text-white/70">No connections yet today. Check back soon!</p>
+                    <p className="text-white/70">No connections yet. Check back soon!</p>
                     <Link
                       href="/profile/edit"
                       className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
