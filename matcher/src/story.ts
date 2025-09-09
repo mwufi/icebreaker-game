@@ -21,7 +21,7 @@ export const story = [
   },
   {
     type: "paragraph",
-    text: "SuperSecret is a layer on top of life for connecting with each other in a new, meaningful way."
+    text: "Appy is a layer on top of life for connecting with each other in a new, meaningful way."
   },
   {
     type: "paragraph",
@@ -44,7 +44,7 @@ export const story = [
   },
   {
     type: "closing",
-    text: "This is SuperSecret."
+    text: "This is Appy."
   },
   {
     type: "closing",

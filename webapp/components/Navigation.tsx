@@ -12,7 +12,7 @@ export function Navigation() {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
                     <Link href="/" className="text-xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
-                        SuperSecret
+                        Appy
                     </Link>
                 </div>
 

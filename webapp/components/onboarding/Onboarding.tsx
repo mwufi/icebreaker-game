@@ -111,7 +111,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
                   </motion.div>
                   
                   <h1 className="text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] text-white">
-                    Welcome to Super Secret
+                    Welcome to Appy
                   </h1>
                   
                   <p className="text-xl text-white/80">

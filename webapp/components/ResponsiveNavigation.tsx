@@ -24,7 +24,7 @@ export function ResponsiveNavigation() {
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="text-xl font-bold text-white hover:text-white/80 transition-colors flex items-center">
-                            SuperSecret
+                            Appy
                         </Link>
                     </div>
 
@@ -73,7 +73,7 @@ export function ResponsiveNavigation() {
                 <nav className="md:hidden px-4 py-3 bg-black/50 backdrop-blur-sm border-b border-white/10">
                     <div className="flex justify-between items-center">
                         <Link href="/" className="text-lg font-bold text-white">
-                            SuperSecret
+                            Appy
                         </Link>
                         <SignInLink />
                     </div>

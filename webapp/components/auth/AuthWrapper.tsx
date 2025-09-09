@@ -12,7 +12,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
                     <Navigation />
                     <main className="flex items-center justify-center min-h-[calc(100vh-80px)]">
                         <div className="text-center">
-                            <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to SuperSecret</h1>
+                            <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Appy</h1>
                             <p className="text-lg text-gray-600 mb-8">Please sign in to continue</p>
                             <a
                                 href="/sign-in"

@@ -31,7 +31,7 @@ export async function generateMatch(targetName: string, contextPath?: string, ma
   const contextFilePath = contextPath || path.join(process.cwd(), 'context.json');
   const contextContent = await readFile(contextFilePath, 'utf-8');
   const profiles: Profile[] = JSON.parse(contextContent);
-  
+
   const storyText = story.map(item => {
     if (item.type === 'paragraph' || item.type === 'closing' || item.type === 'question') {
       return item.text;
@@ -42,8 +42,8 @@ export async function generateMatch(targetName: string, contextPath?: string, ma
     }
     return '';
   }).join('\n\n');
-  
-  const prompt = customPrompt || `Based on the SuperSecret app's story and philosophy:
+
+  const prompt = customPrompt || `Based on the Appy app's story and philosophy:
 
 ${storyText}
 
@@ -69,6 +69,6 @@ Please generate the matches now.`;
     schema: createMatchingResponseSchema(matchCount),
     prompt,
   });
-  
+
   return object;
 }

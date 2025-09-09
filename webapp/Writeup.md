@@ -8,7 +8,7 @@ We came away with new friends, thought partners, funny moments and more.
 And yet what's magical about having a group this size is how much we have *yet* to cover. The synergies, what-if's, and alternate timelines. What if you had met someone different, or if your small group had another person? What if you had shared about that one part of your life, that would totally have made sense to somebody else?
 
 ## Our experiment
-SuperSecret is a layer on top of ODF for connecting with each other in a new, interesting way.
+Appy is a layer on top of ODF for connecting with each other in a new, interesting way.
 
 We’re not building a social platform. We’re building a pro-social device — a small experiment in seeing what happens when we give friendship, serendipity, and curiosity just a little more room to grow.
 

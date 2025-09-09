@@ -1,6 +1,6 @@
 # Matcher Package
 
-This package generates AI-powered matches for users in the SuperSecret app.
+This package generates AI-powered matches for users in the Appy app.
 
 ## Setup
 
@@ -66,7 +66,7 @@ Features:
 1. **Data Collection**: The system fetches all user profiles from InstantDB, including names, profile texts, and preferences.
 
 2. **AI Matching**: Using Google's Gemini model via the AI SDK, it analyzes all profiles considering:
-   - The SuperSecret app's philosophy of serendipity and authentic connection
+   - The Appy app's philosophy of serendipity and authentic connection
    - Profile content and preferences
    - Potential for meaningful conversations
    - Compatible worldviews or intriguing contrasts

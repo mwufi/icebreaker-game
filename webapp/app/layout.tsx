@@ -20,8 +20,8 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-  title: "Super Secret",
-  description: "Super Secret application for ODF",
+  title: "Appy",
+  description: "Appy application for ODF",
 };
 
 export default function RootLayout({

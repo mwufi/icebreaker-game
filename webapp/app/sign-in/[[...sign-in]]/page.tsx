@@ -20,7 +20,7 @@ export default function SignInPage() {
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
                     <div className="text-center">
                         <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-merriweather)]">
-                            Welcome to SuperSecret
+                            Welcome to Appy
                         </h1>
                         <p className="mt-2 text-sm text-white/70">
                             Sign in to access your profile

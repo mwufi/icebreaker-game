@@ -10,11 +10,11 @@ import { ArrowDown } from 'lucide-react';
 // Simple redirect component
 function DashboardRedirect() {
   const router = useRouter();
-  
+
   useEffect(() => {
     router.push('/dashboard');
   }, [router]);
-  
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="text-white">Redirecting to dashboard...</div>
@@ -45,7 +45,7 @@ const story = [
   },
   {
     type: "paragraph",
-    text: "SuperSecret is a layer on top of life for connecting with each other in a new, meaningful way."
+    text: "Appy is a layer on top of life for connecting with each other in a new, meaningful way."
   },
   {
     type: "paragraph",
@@ -68,7 +68,7 @@ const story = [
   },
   {
     type: "closing",
-    text: "This is SuperSecret."
+    text: "This is Appy."
   },
   {
     type: "closing",
@@ -83,7 +83,7 @@ const story = [
 export default function Home() {
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  
+
   // Transform scroll position to gradient opacity
   const orangeOpacity = useTransform(scrollY, [0, 1000, 2000], [1, 0.5, 0]);
   const blackOpacity = useTransform(scrollY, [0, 1000, 2000], [0, 0.5, 1]);
@@ -100,17 +100,17 @@ export default function Home() {
           />
 
           {/* Gradient backgrounds with scroll-based transition */}
-          <motion.div 
+          <motion.div
             className="fixed inset-0 bg-gradient-to-b from-orange-600/60 via-orange-800/40 to-orange-900/20"
             style={{ opacity: orangeOpacity }}
           />
-          <motion.div 
+          <motion.div
             className="fixed inset-0 bg-black"
             style={{ opacity: blackOpacity }}
           />
 
           {/* Scroll indicator */}
-          <motion.div 
+          <motion.div
             style={{ opacity }}
             className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20"
           >
@@ -125,8 +125,8 @@ export default function Home() {
                   <motion.h2
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ 
-                      opacity: 1, 
+                    whileInView={{
+                      opacity: 1,
                       y: 0,
                       transition: {
                         duration: 1.2,
@@ -145,8 +145,8 @@ export default function Home() {
                   <motion.p
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ 
-                      opacity: 1, 
+                    whileInView={{
+                      opacity: 1,
                       y: 0,
                       transition: {
                         duration: 1.2,
@@ -165,8 +165,8 @@ export default function Home() {
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, scaleX: 0 }}
-                    whileInView={{ 
-                      opacity: 0.3, 
+                    whileInView={{
+                      opacity: 0.3,
                       scaleX: 1,
                       transition: {
                         duration: 1.2,
@@ -183,8 +183,8 @@ export default function Home() {
                   <motion.p
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ 
-                      opacity: 1, 
+                    whileInView={{
+                      opacity: 1,
                       y: 0,
                       transition: {
                         duration: 1.2,
@@ -203,8 +203,8 @@ export default function Home() {
                   <motion.p
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ 
-                      opacity: 1, 
+                    whileInView={{
+                      opacity: 1,
                       y: 0,
                       transition: {
                         duration: 1.2,
@@ -224,8 +224,8 @@ export default function Home() {
             {/* CTA Button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ 
-                opacity: 1, 
+              whileInView={{
+                opacity: 1,
                 y: 0,
                 transition: {
                   duration: 1.2,
@@ -247,7 +247,7 @@ export default function Home() {
             {/* Footer */}
             <motion.div
               initial={{ opacity: 0 }}
-              whileInView={{ 
+              whileInView={{
                 opacity: 0.5,
                 transition: {
                   duration: 1.2,
