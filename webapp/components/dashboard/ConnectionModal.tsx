@@ -1,8 +1,14 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, Sparkles, BookOpen, Coffee, Heart, MapPin, Calendar, Music } from 'lucide-react';
+import { Sparkles, BookOpen, Coffee, Heart, Calendar } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 
 interface ConnectionModalProps {
@@ -23,33 +29,12 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 300 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
-      >
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] bg-gradient-to-b from-gray-900 to-black border-white/10 text-white p-0 overflow-hidden">
         <div className="relative">
           {/* Header with gradient */}
           <div className="h-32 bg-gradient-to-br from-orange-600/40 to-red-600/40" />
           
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
-          >
-            <X className="h-5 w-5 text-white" />
-          </button>
-
           {/* Avatar */}
           <div className="absolute -bottom-12 left-8">
             <Avatar className="h-32 w-32 border-4 border-black">
@@ -61,7 +46,8 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
           </div>
         </div>
 
-        <div className="pt-16 px-8 pb-8 space-y-6">
+        <ScrollArea className="max-h-[60vh]">
+          <div className="pt-16 px-8 pb-8 space-y-6">
           {/* Name and basic info */}
           <div className="space-y-2">
             <h2 className="text-3xl font-[family-name:var(--font-merriweather)] text-white">
@@ -149,7 +135,8 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
             </Link>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }

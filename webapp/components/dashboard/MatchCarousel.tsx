@@ -134,14 +134,12 @@ export function MatchCarousel({ connections, challenges }: MatchCarouselProps) {
         )}
       </div>
 
-      <AnimatePresence>
-        {selectedConnection && (
-          <ConnectionModal
-            connection={selectedConnection}
-            onClose={() => setSelectedConnection(null)}
-          />
-        )}
-      </AnimatePresence>
+      {selectedConnection && (
+        <ConnectionModal
+          connection={selectedConnection}
+          onClose={() => setSelectedConnection(null)}
+        />
+      )}
     </>
   );
 }
