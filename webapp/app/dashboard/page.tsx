@@ -153,7 +153,7 @@ function DashboardContent() {
                 {/* Soft gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/80 via-pink-500/80 to-orange-500/80" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 via-transparent to-yellow-500/20" />
-                
+
                 {/* Content */}
                 <div className="relative p-8 md:p-12">
                   <div className="flex items-center justify-between">
@@ -175,7 +175,7 @@ function DashboardContent() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Shimmer effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
               </div>
@@ -219,132 +219,6 @@ function DashboardContent() {
             )}
           </motion.section>
 
-          {/* Get Better Connections Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex justify-center"
-          >
-            <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-              <DrawerTrigger asChild>
-                <button className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3">
-                  <span className="text-lg">Get Better Connections</span>
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </button>
-              </DrawerTrigger>
-              <DrawerContent className="max-h-[90vh] bg-black border-white/10 max-w-4xl mx-auto">
-                <DrawerHeader className="text-center">
-                  <DrawerTitle className="text-2xl font-[family-name:var(--font-merriweather)] text-white">
-                    Tell us more about you
-                  </DrawerTitle> 
-                  <DrawerDescription className="text-white/70 mt-2">
-                    Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
-                  </DrawerDescription>
-                </DrawerHeader>
-
-                <div className="px-4 pb-8 overflow-y-auto">
-                  {activeQuestions.length === 0 ? (
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
-                      <p className="text-white/70">No activities available right now. Check back soon!</p>
-                    </div>
-                  ) : submitted ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center"
-                    >
-                      <div className="space-y-4">
-                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                          <Send className="h-8 w-8 text-green-400" />
-                        </div>
-                        <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
-                          Thank you for sharing!
-                        </h3>
-                        <p className="text-white/70">
-                          Your answers will help us find better matches for you.
-                        </p>
-                        <button
-                          onClick={() => {
-                            setSubmitted(false);
-                            setUserAnswers('');
-                          }}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
-                        >
-                          Answer Again
-                        </button>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <div className="space-y-6">
-                      {/* Questions List */}
-                      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                        <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
-                          Questions to answer:
-                        </h3>
-                        <ul className="space-y-3">
-                          {activeQuestions.map((question: any, index: number) => {
-                            const Icon = getIconForTag(question.tags);
-                            return (
-                              <motion.li
-                                key={question.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="flex items-start gap-3"
-                              >
-                                <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
-                                <span className="text-white/80 text-sm leading-relaxed">
-                                  {question.questionText}
-                                </span>
-                              </motion.li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-
-                      {/* Answer Form */}
-                      <form onSubmit={handleSubmitAnswers} className="space-y-4">
-                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                          <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
-                            Your answers:
-                          </label>
-                          <textarea
-                            id="answers"
-                            value={userAnswers}
-                            onChange={(e) => setUserAnswers(e.target.value)}
-                            placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
-                            className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            type="submit"
-                            disabled={!userAnswers.trim() || isSubmitting}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Submitting...
-                              </>
-                            ) : (
-                              <>
-                                <Send className="h-4 w-4" />
-                                Submit Answers
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              </DrawerContent>
-            </Drawer>
-          </motion.div>
 
           {/* Footer */}
           <motion.div
@@ -359,6 +233,133 @@ function DashboardContent() {
           </motion.div>
         </div>
       </div>
+
+      {/* Floating Get Better Connections Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 md:bottom-8 w-full"
+      >
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerTrigger asChild>
+            <button className="group relative px-6 py-4 md:px-8 md:py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 backdrop-blur-sm border border-white/20 w-[300px] flex justify-center mx-auto">
+              <span className="text-sm md:text-lg">Get Better Connections</span>
+              <ArrowRight className="h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
+            </button>
+          </DrawerTrigger>
+          <DrawerContent className="max-h-[90vh] bg-black border-white/10 max-w-4xl mx-auto">
+            <DrawerHeader className="text-center">
+              <DrawerTitle className="text-2xl font-[family-name:var(--font-merriweather)] text-white">
+                Tell us more about you
+              </DrawerTitle>
+              <DrawerDescription className="text-white/70 mt-2">
+                Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
+              </DrawerDescription>
+            </DrawerHeader>
+
+            <div className="px-4 pb-8 overflow-y-auto">
+              {activeQuestions.length === 0 ? (
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
+                  <p className="text-white/70">No activities available right now. Check back soon!</p>
+                </div>
+              ) : submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center"
+                >
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                      <Send className="h-8 w-8 text-green-400" />
+                    </div>
+                    <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                      Thank you for sharing!
+                    </h3>
+                    <p className="text-white/70">
+                      Your answers will help us find better matches for you.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSubmitted(false);
+                        setUserAnswers('');
+                      }}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                    >
+                      Answer Again
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Questions List */}
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                    <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
+                      Questions to answer:
+                    </h3>
+                    <ul className="space-y-3">
+                      {activeQuestions.map((question: any, index: number) => {
+                        const Icon = getIconForTag(question.tags);
+                        return (
+                          <motion.li
+                            key={question.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className="flex items-start gap-3"
+                          >
+                            <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
+                            <span className="text-white/80 text-sm leading-relaxed">
+                              {question.questionText}
+                            </span>
+                          </motion.li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  {/* Answer Form */}
+                  <form onSubmit={handleSubmitAnswers} className="space-y-4">
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                      <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
+                        Your answers:
+                      </label>
+                      <textarea
+                        id="answers"
+                        value={userAnswers}
+                        onChange={(e) => setUserAnswers(e.target.value)}
+                        placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
+                        className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={!userAnswers.trim() || isSubmitting}
+                        className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4" />
+                            Submit Answers
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </motion.div>
     </div>
   );
 }
