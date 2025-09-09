@@ -35,11 +35,11 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
 
   // Animation values
   const headerHeight = useTransform(scrollY, (y) => {
-    return Math.max(64, 120 - y * 0.6);
+    return Math.max(80, 128 - y * 0.6);
   });
 
   const avatarScale = useTransform(scrollY, (y) => {
-    return Math.max(0.4, 1 - y * 0.004);
+    return Math.max(0.5, 1 - y * 0.004);
   });
 
   const nameOpacity = useTransform(scrollY, (y) => {
@@ -63,6 +63,9 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-[600px] h-[90vh] pb-20 translate-x-[-50%] translate-y-[-50%] bg-gradient-to-b from-gray-900 to-black border border-white/10 rounded-2xl text-white overflow-hidden shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+          <DialogPrimitive.Title className="sr-only">
+            {targetProfile?.name ? `Connection with ${targetProfile.name}` : 'Connection'}
+          </DialogPrimitive.Title>
 
           {/* Fixed Header */}
           <motion.div
@@ -82,7 +85,7 @@ export function ConnectionModal({ connection, onClose }: ConnectionModalProps) {
             </div>
 
             {/* Header content */}
-            <div className="relative flex items-center justify-between p-4 h-full">
+            <div className="relative flex items-center justify-between px-4 py-5 h-full">
               {/* Left side: Avatar and name */}
               <div className="flex items-center gap-4">
                 <motion.div style={{ scale: avatarScale }}>
