@@ -115,41 +115,34 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
                   </h1>
                   
                   <p className="text-xl text-white/80">
-                    Let's get you started by finding or creating your profile
+                    Let's get you started by linking your profile
                   </p>
                 </div>
 
-                {unlinkedProfiles.length > 0 ? (
-                  <div className="space-y-6">
-                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                      <h2 className="text-2xl font-[family-name:var(--font-merriweather)] text-white mb-4">
-                        Find Your Profile
-                      </h2>
-                      <ProfileSearch
-                        profiles={unlinkedProfiles}
-                        linkedProfiles={[]}
-                        onLink={handleLinkProfile}
-                        onConfirmLink={handleLinkProfile}
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 h-px bg-white/20" />
-                      <span className="text-white/50 text-sm">or</span>
-                      <div className="flex-1 h-px bg-white/20" />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-2">
-                    <p className="text-white/70">No existing profiles found</p>
-                    <p className="text-white/50 text-sm">Let's create your profile!</p>
+                {unlinkedProfiles.length > 0 && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                    <h2 className="text-xl font-[family-name:var(--font-merriweather)] text-white mb-4">
+                      Find Your Profile
+                    </h2>
+                    <ProfileSearch
+                      profiles={unlinkedProfiles}
+                      linkedProfiles={[]}
+                      onLink={handleLinkProfile}
+                      onConfirmLink={handleLinkProfile}
+                    />
                   </div>
                 )}
+
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-px bg-white/20" />
+                  <span className="text-white/50 text-sm">can't find your profile?</span>
+                  <div className="flex-1 h-px bg-white/20" />
+                </div>
 
                 <div className="flex justify-center">
                   <button
                     onClick={() => setStep('create')}
-                    className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-lg transition-all"
+                    className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all"
                   >
                     Create New Profile
                     <ArrowRight className="h-5 w-5" />

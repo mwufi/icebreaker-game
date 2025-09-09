@@ -1,12 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Search, User, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Search, User } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Profile {
     id: string;
@@ -52,83 +49,69 @@ export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink 
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <input
                     type="text"
                     placeholder="Search profiles by name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-11"
+                    className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent backdrop-blur-sm"
                 />
             </div>
 
-            {filteredProfiles.length === 0 && (
-                <div className="text-center py-12">
-                    <User className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No profiles found matching your search</p>
-                </div>
-            )}
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProfiles.map((profile) => (
-                    <Card key={profile.id} className="hover:shadow-lg transition-all duration-200 border-gray-200">
-                        <CardHeader className="pb-4">
-                            <div className="flex items-start space-x-4">
-                                <Avatar className="h-16 w-16">
+            <ScrollArea className="h-[400px] rounded-lg border border-white/10">
+                <div className="space-y-3 p-3">
+                    {filteredProfiles.length === 0 ? (
+                        <div className="text-center py-12">
+                            <User className="h-12 w-12 text-white/30 mx-auto mb-3" />
+                            <p className="text-white/50">No profiles found matching your search</p>
+                        </div>
+                    ) : (
+                        filteredProfiles.map((profile) => (
+                            <div 
+                                key={profile.id} 
+                                className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                            >
+                                <Avatar className="h-12 w-12 border border-white/20">
                                     <AvatarImage 
                                         src={profile.profilePicUrl} 
                                         alt={profile.name}
                                     />
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-semibold">
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
                                         {getInitials(profile.name)}
                                     </AvatarFallback>
                                 </Avatar>
                                 
                                 <div className="flex-1 min-w-0">
-                                    <Link href={`/profiles/${profile.id}`} className="hover:underline">
-                                        <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                            {profile.name}
-                                        </h3>
-                                    </Link>
+                                    <h3 className="font-medium text-white truncate">
+                                        {profile.name}
+                                    </h3>
                                     {profile.tagline && (
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                        <p className="text-sm text-white/60">
                                             {profile.tagline}
                                         </p>
                                     )}
                                 </div>
-                            </div>
-                        </CardHeader>
-                        
-                        <CardContent>
-                            {profile.linkedUser ? (
-                                <div className="space-y-3">
-                                    <div className="text-sm text-gray-600">
-                                        <span className="font-medium">Linked to:</span>
-                                        <p className="text-gray-900">{profile.linkedUser.email || 'User'}</p>
-                                    </div>
-                                    <Button 
-                                        variant="outline"
-                                        className="w-full"
-                                        disabled
+
+                                {profile.linkedUser ? (
+                                    <span className="text-sm text-white/40 px-3 py-1 bg-white/5 rounded-full">
+                                        Already linked
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => onConfirmLink ? onConfirmLink(profile.id) : onLink(profile.id)}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-full transition-all whitespace-nowrap"
                                     >
-                                        <ExternalLink className="h-4 w-4 mr-2" />
-                                        Already Linked
-                                    </Button>
-                                </div>
-                            ) : (
-                                <Button 
-                                    onClick={() => onConfirmLink ? onConfirmLink(profile.id) : onLink(profile.id)}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
-                                >
-                                    Link This Profile
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                                        Link This Profile
+                                    </button>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </ScrollArea>
         </div>
     );
 }
