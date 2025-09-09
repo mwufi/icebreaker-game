@@ -3,7 +3,7 @@
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
-  // We inferred 4 attributes!
+  // We inferred 6 attributes!
   // Take a look at this schema, and if everything looks good,
   // run `push schema` again to enforce the types.
   entities: {
@@ -14,9 +14,14 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
     }),
+    activityAnswers: i.entity({
+      answerText: i.string().optional(),
+      submittedAt: i.string().optional(),
+    }),
+    activityConversations: i.entity({}),
     activityQuestions: i.entity({
-      isCreatedbySystem: i.boolean().optional(),
       isActive: i.boolean().optional(),
+      isCreatedbySystem: i.boolean().optional(),
       questionText: i.string().unique().indexed(),
       tags: i.string().optional(),
     }),
@@ -59,6 +64,42 @@ const _schema = i.schema({
     }),
   },
   links: {
+    activityAnswersAuthor: {
+      forward: {
+        on: "activityAnswers",
+        has: "one",
+        label: "author",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "activityAnswers",
+      },
+    },
+    activityAnswersQuestions: {
+      forward: {
+        on: "activityAnswers",
+        has: "many",
+        label: "questions",
+      },
+      reverse: {
+        on: "questions",
+        has: "many",
+        label: "activityAnswers",
+      },
+    },
+    activityConversationsPrompt: {
+      forward: {
+        on: "activityConversations",
+        has: "one",
+        label: "prompt",
+      },
+      reverse: {
+        on: "activityQuestions",
+        has: "many",
+        label: "conversations",
+      },
+    },
     dailyConnectionsProfiles: {
       forward: {
         on: "dailyConnections",
@@ -198,7 +239,7 @@ const _schema = i.schema({
 
 // This helps Typescript display nicer intellisense
 type _AppSchema = typeof _schema;
-interface AppSchema extends _AppSchema { }
+interface AppSchema extends _AppSchema {}
 const schema: AppSchema = _schema;
 
 export type { AppSchema };

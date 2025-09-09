@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
+import { id } from '@instantdb/react';
 import Link from 'next/link';
-import { Lock, Sparkles, BookOpen, Coffee, Music, Tag } from 'lucide-react';
+import { Lock, Sparkles, BookOpen, Coffee, Music, Tag, Send, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface UnlockedMatch {
@@ -14,6 +15,9 @@ interface UnlockedMatch {
 
 function DashboardContent() {
   const [unlockedConnections, setUnlockedConnections] = useState<UnlockedMatch>({});
+  const [userAnswers, setUserAnswers] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const { user } = db.useAuth();
 
   // Get today's and yesterday's date at midnight for comparison
@@ -67,6 +71,36 @@ function DashboardContent() {
 
   const handleUnlock = (matchId: string) => {
     setUnlockedConnections(prev => ({ ...prev, [matchId]: true }));
+  };
+
+  const handleSubmitAnswers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userAnswers.trim() || isSubmitting || !profile) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Create a new activity answer record
+      const answerId = id();
+      const questionIds = activeQuestions.map((q: any) => q.id);
+
+      await db.transact([
+        db.tx.activityAnswers[answerId].update({
+          answerText: userAnswers.trim(),
+          submittedAt: new Date(),
+        }).link({
+          author: profile.id,
+          questions: questionIds,
+        })
+      ]);
+
+      setSubmitted(true);
+
+    } catch (error) {
+      console.error('Error submitting answers:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Sample challenges
@@ -246,52 +280,114 @@ function DashboardContent() {
               className="space-y-8"
             >
               <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-                Activities
+                Tell us more about you
               </h2>
 
               <p className="text-white/70 text-lg">
-                Share more about yourself to improve your connections
+                Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
               </p>
 
-              <div className="space-y-3">
-                {activeQuestions.length === 0 ? (
-                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
-                    <p className="text-white/70">No activities available right now. Check back soon!</p>
+              {activeQuestions.length === 0 ? (
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
+                  <p className="text-white/70">No activities available right now. Check back soon!</p>
+                </div>
+              ) : submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center"
+                >
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                      <Send className="h-8 w-8 text-green-400" />
+                    </div>
+                    <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                      Thank you for sharing!
+                    </h3>
+                    <p className="text-white/70">
+                      Your answers will help us find better matches for you.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSubmitted(false);
+                        setUserAnswers('');
+                      }}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                    >
+                      Answer Again
+                    </button>
                   </div>
-                ) : (
-                  activeQuestions.map((question: any, index: number) => {
-                    const Icon = getIconForTag(question.tags);
-                    return (
-                      <motion.div
-                        key={question.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                      >
-                        <Link
-                          href={`/activity/${question.id}`}
-                          className="flex flex-col gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
-                        >
-                          <div className="flex items-center gap-4">
-                            <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
-                            <span className="text-white/70 group-hover:text-white/90 transition-colors">
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-6"
+                >
+                  {/* Questions List */}
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                    <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
+                      Questions to answer:
+                    </h3>
+                    <ul className="space-y-3">
+                      {activeQuestions.map((question: any, index: number) => {
+                        const Icon = getIconForTag(question.tags);
+                        return (
+                          <motion.li
+                            key={question.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className="flex items-start gap-3"
+                          >
+                            <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
+                            <span className="text-white/80 text-sm leading-relaxed">
                               {question.questionText}
                             </span>
-                          </div>
-                          {question.tags && (
-                            <div className="flex items-center gap-2 ml-9">
-                              <Tag className="h-3 w-3 text-white/30" />
-                              <span className="text-xs text-white/30">
-                                {question.tags.split(',').map((tag: string) => tag.trim()).join(', ')}
-                              </span>
-                            </div>
-                          )}
-                        </Link>
-                      </motion.div>
-                    );
-                  })
-                )}
-              </div>
+                          </motion.li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  {/* Answer Form */}
+                  <form onSubmit={handleSubmitAnswers} className="space-y-4">
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                      <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
+                        Your answers:
+                      </label>
+                      <textarea
+                        id="answers"
+                        value={userAnswers}
+                        onChange={(e) => setUserAnswers(e.target.value)}
+                        placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
+                        className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={!userAnswers.trim() || isSubmitting}
+                        className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4" />
+                            Submit Answers
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
             </motion.section>
           </div>
 
