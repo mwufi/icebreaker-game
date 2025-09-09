@@ -102,7 +102,7 @@ function DashboardContent() {
 
       {/* Content */}
       <div className="relative z-10 min-h-screen px-6 py-16">
-        <div className="max-w-2xl mx-auto space-y-16">
+        <div className="md:max-w-4xl mx-auto space-y-16">
           {/* Welcome */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -114,183 +114,186 @@ function DashboardContent() {
             </h1>
           </motion.div>
 
-          {/* Connections Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-8"
-          >
-            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-              Your Connections
-            </h2>
+          <div className="grid md:grid-cols-2 gap-12">
 
-            <div className="space-y-4">
-              {connections.length === 0 ? (
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
-                  <p className="text-white/70">No connections yet today. Check back soon!</p>
-                  <Link
-                    href="/profile/edit"
-                    className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
-                  >
-                    Update your preferences →
-                  </Link>
-                </div>
-              ) : (
-                connections.map((match: any, index: number) => {
-                  const targetProfile = match.targetProfile?.[0];
-                  const isUnlocked = unlockedConnections[match.id];
-                  const challenge = challenges[index % challenges.length];
+            {/* Connections Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-8"
+            >
+              <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+                Your Connections
+              </h2>
 
-                  return (
-                    <motion.div
-                      key={match.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="relative overflow-hidden"
+              <div className="space-y-4">
+                {connections.length === 0 ? (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
+                    <p className="text-white/70">No connections yet today. Check back soon!</p>
+                    <Link
+                      href="/profile/edit"
+                      className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
                     >
-                      {/* Unlock animation overlay */}
-                      <AnimatePresence>
-                        {unlockedConnections[match.id] && (
-                          <motion.div
-                            className="absolute inset-0 pointer-events-none z-20"
-                            initial={{ x: '-100%' }}
-                            animate={{ x: '100%' }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent skew-x-12" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      Update your preferences →
+                    </Link>
+                  </div>
+                ) : (
+                  connections.map((match: any, index: number) => {
+                    const targetProfile = match.targetProfile?.[0];
+                    const isUnlocked = unlockedConnections[match.id];
+                    const challenge = challenges[index % challenges.length];
 
-                      <div className={`
+                    return (
+                      <motion.div
+                        key={match.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className="relative overflow-hidden"
+                      >
+                        {/* Unlock animation overlay */}
+                        <AnimatePresence>
+                          {unlockedConnections[match.id] && (
+                            <motion.div
+                              className="absolute inset-0 pointer-events-none z-20"
+                              initial={{ x: '-100%' }}
+                              animate={{ x: '100%' }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent skew-x-12" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div className={`
                         relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6
                         transition-all duration-500
                         ${isUnlocked ? 'bg-white/10' : 'hover:bg-white/10'}
                       `}>
-                        {!isUnlocked ? (
-                          // Locked state
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <Lock className="h-5 w-5 text-white/50" />
-                              <p className="text-white/70">New match available</p>
-                            </div>
-                            <button
-                              onClick={() => handleUnlock(match.id)}
-                              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
-                            >
-                              Unlock
-                            </button>
-                          </div>
-                        ) : (
-                          // Unlocked state
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="space-y-4"
-                          >
-                            <div className="flex items-start gap-4">
-                              <Avatar className="h-12 w-12 border border-white/20">
-                                <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
-                                  {targetProfile ? getInitials(targetProfile.name) : '?'}
-                                </AvatarFallback>
-                              </Avatar>
-
-                              <div className="flex-1 space-y-2">
-                                <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
-                                  {targetProfile?.name || 'Mystery Match'}
-                                </h3>
-
-                                {match.text && (
-                                  <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
-                                    {match.text}
-                                  </p>
-                                )}
-
-                                <div className="flex items-center gap-2 pt-2">
-                                  <Sparkles className="h-4 w-4 text-yellow-500/70" />
-                                  <p className="text-yellow-500/70 text-sm italic">
-                                    Challenge: {challenge}
-                                  </p>
-                                </div>
-
-                                <Link
-                                  href={`/profiles/${targetProfile?.id}`}
-                                  className="inline-block mt-2 text-sm text-white/50 hover:text-white/70 transition-colors"
-                                >
-                                  View full profile →
-                                </Link>
+                          {!isUnlocked ? (
+                            // Locked state
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <Lock className="h-5 w-5 text-white/50" />
+                                <p className="text-white/70">New match available</p>
                               </div>
+                              <button
+                                onClick={() => handleUnlock(match.id)}
+                                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all"
+                              >
+                                Unlock
+                              </button>
                             </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
-          </motion.section>
+                          ) : (
+                            // Unlocked state
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.5 }}
+                              className="space-y-4"
+                            >
+                              <div className="flex items-start gap-4">
+                                <Avatar className="h-12 w-12 border border-white/20">
+                                  <AvatarImage src={targetProfile?.profilePicUrl} alt={targetProfile?.name} />
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
+                                    {targetProfile ? getInitials(targetProfile.name) : '?'}
+                                  </AvatarFallback>
+                                </Avatar>
 
-          {/* Activities Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-8"
-          >
-            <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-              Activities
-            </h2>
+                                <div className="flex-1 space-y-2">
+                                  <h3 className="text-xl font-[family-name:var(--font-merriweather)] text-white">
+                                    {targetProfile?.name || 'Mystery Match'}
+                                  </h3>
 
-            <p className="text-white/70 text-lg">
-              Share more about yourself to improve your connections
-            </p>
+                                  {match.text && (
+                                    <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">
+                                      {match.text}
+                                    </p>
+                                  )}
 
-            <div className="space-y-3">
-              {activeQuestions.length === 0 ? (
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
-                  <p className="text-white/70">No activities available right now. Check back soon!</p>
-                </div>
-              ) : (
-                activeQuestions.map((question: any, index: number) => {
-                  const Icon = getIconForTag(question.tags);
-                  return (
-                    <motion.div
-                      key={question.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                    >
-                      <Link
-                        href={`/activity/${question.id}`}
-                        className="flex flex-col gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
-                          <span className="text-white/70 group-hover:text-white/90 transition-colors">
-                            {question.questionText}
-                          </span>
+                                  <div className="flex items-center gap-2 pt-2">
+                                    <Sparkles className="h-4 w-4 text-yellow-500/70" />
+                                    <p className="text-yellow-500/70 text-sm italic">
+                                      Challenge: {challenge}
+                                    </p>
+                                  </div>
+
+                                  <Link
+                                    href={`/profiles/${targetProfile?.id}`}
+                                    className="inline-block mt-2 text-sm text-white/50 hover:text-white/70 transition-colors"
+                                  >
+                                    View full profile →
+                                  </Link>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
-                        {question.tags && (
-                          <div className="flex items-center gap-2 ml-9">
-                            <Tag className="h-3 w-3 text-white/30" />
-                            <span className="text-xs text-white/30">
-                              {question.tags.split(',').map((tag: string) => tag.trim()).join(', ')}
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.section>
+
+            {/* Activities Section */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="space-y-8"
+            >
+              <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
+                Activities
+              </h2>
+
+              <p className="text-white/70 text-lg">
+                Share more about yourself to improve your connections
+              </p>
+
+              <div className="space-y-3">
+                {activeQuestions.length === 0 ? (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 text-center">
+                    <p className="text-white/70">No activities available right now. Check back soon!</p>
+                  </div>
+                ) : (
+                  activeQuestions.map((question: any, index: number) => {
+                    const Icon = getIconForTag(question.tags);
+                    return (
+                      <motion.div
+                        key={question.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                      >
+                        <Link
+                          href={`/activity/${question.id}`}
+                          className="flex flex-col gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 transition-all group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <Icon className="h-5 w-5 text-white/50 group-hover:text-white/70 transition-colors" />
+                            <span className="text-white/70 group-hover:text-white/90 transition-colors">
+                              {question.questionText}
                             </span>
                           </div>
-                        )}
-                      </Link>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
-          </motion.section>
+                          {question.tags && (
+                            <div className="flex items-center gap-2 ml-9">
+                              <Tag className="h-3 w-3 text-white/30" />
+                              <span className="text-xs text-white/30">
+                                {question.tags.split(',').map((tag: string) => tag.trim()).join(', ')}
+                              </span>
+                            </div>
+                          )}
+                        </Link>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.section>
+          </div>
 
           {/* Footer */}
           <motion.div
