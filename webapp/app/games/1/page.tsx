@@ -3,38 +3,29 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
-import { Mic, MicOff, Play, Pause, RotateCcw, CheckCircle, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, RotateCcw, CheckCircle, Loader2, Send, BookOpen, Sparkles, Coffee, Music, Keyboard } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 
-// Day 1 questions from seedQuestions
-const gameQuestions = [
-  {
-    text: "What is your favorite book and why do you like it?",
-  },
-  {
-    text: "If you had three extra hours on a Sunday to do something other than work, what would you be doing?",
-  },
-  {
-    text: "What's something you wish people would ask or talk to you about?",
-  },
-];
-
 function GameContent() {
-  const [screen, setScreen] = useState<'premise' | 'recording' | 'complete'>('premise');
+  const [screen, setScreen] = useState<'premise' | 'main' | 'complete'>('premise');
+  const [inputMode, setInputMode] = useState<'audio' | 'text'>('audio');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userAnswers, setUserAnswers] = useState('');
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  
+
   const { user } = db.useAuth();
+
+  // Fetch user profile and active questions
   const { data } = db.useQuery({
     $users: {
       $: {
@@ -43,10 +34,18 @@ function GameContent() {
         }
       },
       odfProfile: {}
+    },
+    activityQuestions: {
+      $: {
+        where: {
+          isActive: true
+        }
+      }
     }
   });
-  
+
   const profile = data?.$users?.[0]?.odfProfile?.[0];
+  const activeQuestions = data?.activityQuestions || [];
 
   // Cleanup on unmount
   useEffect(() => {
@@ -56,6 +55,15 @@ function GameContent() {
       }
     };
   }, []);
+
+  // Map questions to icons based on tags
+  const getIconForTag = (tags: string) => {
+    const tagLower = tags?.toLowerCase() || '';
+    if (tagLower.includes('personal')) return BookOpen;
+    if (tagLower.includes('dream')) return Sparkles;
+    if (tagLower.includes('values') || tagLower.includes('company')) return Coffee;
+    return Music; // default icon
+  };
 
   const startRecording = async () => {
     try {
@@ -98,7 +106,7 @@ function GameContent() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
@@ -119,11 +127,11 @@ function GameContent() {
     if (audioBlob && !isPlaying) {
       const audio = new Audio(URL.createObjectURL(audioBlob));
       audioRef.current = audio;
-      
+
       audio.onended = () => {
         setIsPlaying(false);
       };
-      
+
       audio.play();
       setIsPlaying(true);
     } else if (audioRef.current && isPlaying) {
@@ -132,44 +140,58 @@ function GameContent() {
     }
   };
 
-  const submitRecording = async () => {
-    if (!audioBlob || !profile) return;
-    
-    setIsUploading(true);
-    
+  const submitAnswers = async () => {
+    if (!profile) return;
+
+    if (inputMode === 'audio' && !audioBlob) return;
+    if (inputMode === 'text' && !userAnswers.trim()) return;
+
+    setIsSubmitting(true);
+
     try {
-      // Create a unique file path
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filePath = `games/audio-challenge/${profile.id}/${timestamp}.webm`;
-      
-      // Convert blob to File object for upload
-      const audioFile = new File([audioBlob], `${timestamp}.webm`, { 
-        type: 'audio/webm' 
-      });
-      
-      // Upload the file using InstantDB storage
-      await db.storage.uploadFile(filePath, audioFile);
-      
-      // Create a game completion record
-      // Note: Files are automatically linked via their path
-      const gameRecordId = id();
-      await db.transact([
-        db.tx.gameCompletions[gameRecordId].update({
-          gameType: 'audio-challenge-day1',
-          completedAt: new Date(),
-          audioFilePath: filePath,
-        }).link({
-          profile: profile.id,
-        })
-      ]);
-      
-      // Show completion screen
+      const questionIds = activeQuestions.map((q: any) => q.id);
+
+      if (inputMode === 'audio') {
+        // Handle audio submission
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filePath = `games/audio-challenge/${profile.id}/${timestamp}.webm`;
+
+        const audioFile = new File([audioBlob!], `${timestamp}.webm`, {
+          type: 'audio/webm'
+        });
+
+        await db.storage.uploadFile(filePath, audioFile);
+
+        const gameRecordId = id();
+        await db.transact([
+          db.tx.gameCompletions[gameRecordId].update({
+            gameType: 'audio-challenge-60s',
+            completedAt: new Date(),
+            audioFilePath: filePath,
+          }).link({
+            profile: profile.id,
+          })
+        ]);
+      } else {
+        // Handle text submission (same as drawer)
+        const answerId = id();
+        await db.transact([
+          db.tx.activityAnswers[answerId].update({
+            answerText: userAnswers.trim(),
+            submittedAt: new Date(),
+          }).link({
+            author: profile.id,
+            questions: questionIds,
+          })
+        ]);
+      }
+
       setScreen('complete');
     } catch (error) {
-      console.error('Error uploading recording:', error);
-      alert('Failed to save recording. Please try again.');
+      console.error('Error submitting answers:', error);
+      alert('Failed to save your response. Please try again.');
     } finally {
-      setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -183,7 +205,7 @@ function GameContent() {
     <div className="relative min-h-screen bg-black overflow-hidden">
       {/* Gradient background */}
       <div className="fixed inset-0 bg-gradient-to-b from-purple-900/40 via-pink-900/30 to-black" />
-      
+
       {/* Grainy texture overlay */}
       <div
         className="fixed inset-0 opacity-30 mix-blend-overlay pointer-events-none z-0"
@@ -206,137 +228,217 @@ function GameContent() {
               >
                 <div className="text-center space-y-6">
                   <h1 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-                    60 Second Challenge
+                    Tell us more about you
                   </h1>
-                  
-                  <div className="space-y-4 text-white/80">
-                    <p className="text-lg">
-                      Record 60 seconds of audio talking about the prompts
-                    </p>
-                    <p className="text-lg">
-                      If you do this, you get a special prize
-                    </p>
-                  </div>
+
+                  <p className="text-white/80 text-lg max-w-2xl mx-auto">
+                    Answer today for us to improve your matches tomorrow. The more you tell us, the better your match.
+                  </p>
                 </div>
 
                 <div className="flex justify-center">
                   <button
-                    onClick={() => setScreen('recording')}
-                    className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    onClick={() => setScreen('main')}
+                    className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-full transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
-                    Ready
+                    Get Started
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {screen === 'recording' && (
+            {screen === 'main' && (
               <motion.div
-                key="recording"
+                key="main"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-12"
+                className="space-y-8"
               >
-                <div className="text-center">
-                  <h2 className="text-2xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white mb-8">
-                    Talk about these prompts:
-                  </h2>
-                  
-                  <div className="space-y-4 mb-12">
-                    {gameQuestions.map((question, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4 text-left"
-                      >
-                        <p className="text-white/90">
-                          {index + 1}. {question.text}
-                        </p>
-                      </motion.div>
-                    ))}
+                {activeQuestions.length === 0 ? (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 text-center">
+                    <p className="text-white/70">No activities available right now. Check back soon!</p>
+                    <Link
+                      href="/dashboard"
+                      className="inline-block mt-4 text-sm text-white/50 hover:text-white/70 transition-colors"
+                    >
+                      Back to Dashboard
+                    </Link>
                   </div>
-
-                  {/* Recording Controls */}
+                ) : (
                   <div className="space-y-8">
-                    {/* Timer */}
-                    <div className="text-4xl font-mono text-white">
-                      {formatTime(recordingTime)} / 1:00
+                    {/* Questions List */}
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                      <h3 className="text-lg font-[family-name:var(--font-merriweather)] text-white mb-4">
+                        Questions to answer:
+                      </h3>
+                      <ul className="space-y-3">
+                        {activeQuestions.map((question: any, index: number) => {
+                          const Icon = getIconForTag(question.tags);
+                          return (
+                            <motion.li
+                              key={question.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.5, delay: index * 0.1 }}
+                              className="flex items-start gap-3"
+                            >
+                              <Icon className="h-4 w-4 text-white/50 mt-1 flex-shrink-0" />
+                              <span className="text-white/80 text-sm leading-relaxed">
+                                {question.questionText}
+                              </span>
+                            </motion.li>
+                          );
+                        })}
+                      </ul>
                     </div>
 
-                    {/* Recording indicator */}
-                    {isRecording && (
-                      <motion.div
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="flex items-center justify-center gap-2 text-red-400"
+                    {/* Input Mode Selector */}
+                    <div className="flex justify-center gap-4">
+                      <button
+                        onClick={() => setInputMode('audio')}
+                        className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${
+                          inputMode === 'audio' 
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                        }`}
                       >
-                        <div className="w-3 h-3 bg-red-400 rounded-full" />
-                        <span>Recording...</span>
-                      </motion.div>
+                        <Mic className="h-4 w-4" />
+                        Record Audio (60s)
+                      </button>
+                      <button
+                        onClick={() => setInputMode('text')}
+                        className={`px-6 py-3 rounded-full transition-all flex items-center gap-2 ${inputMode === 'text'
+                            ? 'bg-white/20 text-white'
+                            : 'bg-white/10 text-white/60 hover:bg-white/20'
+                          }`}
+                      >
+                        <Keyboard className="h-4 w-4" />
+                        Type Answer
+                      </button>
+                    </div>
+
+                    {/* Audio Recording Section */}
+                    {inputMode === 'audio' && (
+                      <div className="space-y-8">
+                        {/* Timer */}
+                        {(isRecording || audioBlob) && (
+                          <div className="text-4xl font-mono text-white text-center">
+                            {formatTime(recordingTime)} / 1:00
+                          </div>
+                        )}
+
+                        {/* Recording indicator */}
+                        {isRecording && (
+                          <motion.div
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                            className="flex items-center justify-center gap-2 text-red-400"
+                          >
+                            <div className="w-3 h-3 bg-red-400 rounded-full" />
+                            <span>Recording...</span>
+                          </motion.div>
+                        )}
+
+                        {/* Audio Control buttons */}
+                        <div className="flex items-center justify-center gap-4">
+                          {!audioBlob ? (
+                            <button
+                              onClick={isRecording ? stopRecording : startRecording}
+                              className={`p-6 rounded-full transition-all transform hover:scale-105 ${isRecording
+                                  ? 'bg-red-500 hover:bg-red-600'
+                                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                                } text-white shadow-lg hover:shadow-xl`}
+                            >
+                              {isRecording ? (
+                                <MicOff className="h-8 w-8" />
+                              ) : (
+                                <Mic className="h-8 w-8" />
+                              )}
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                onClick={playRecording}
+                                className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+                              >
+                                {isPlaying ? (
+                                  <Pause className="h-6 w-6" />
+                                ) : (
+                                  <Play className="h-6 w-6" />
+                                )}
+                              </button>
+
+                              <button
+                                onClick={resetRecording}
+                                className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+                              >
+                                <RotateCcw className="h-6 w-6" />
+                              </button>
+
+                              <button
+                                onClick={submitAnswers}
+                                disabled={isSubmitting}
+                                className="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full text-white font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                              >
+                                {isSubmitting ? (
+                                  <>
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="h-5 w-5" />
+                                    Submit Recording
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     )}
 
-                    {/* Control buttons */}
-                    <div className="flex items-center justify-center gap-4">
-                      {!audioBlob ? (
-                        <button
-                          onClick={isRecording ? stopRecording : startRecording}
-                          className={`p-6 rounded-full transition-all transform hover:scale-105 ${
-                            isRecording
-                              ? 'bg-red-500 hover:bg-red-600'
-                              : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-                          } text-white shadow-lg hover:shadow-xl`}
-                        >
-                          {isRecording ? (
-                            <MicOff className="h-8 w-8" />
-                          ) : (
-                            <Mic className="h-8 w-8" />
-                          )}
-                        </button>
-                      ) : (
-                        <>
+                    {/* Text Input Section */}
+                    {inputMode === 'text' && (
+                      <form onSubmit={(e) => { e.preventDefault(); submitAnswers(); }} className="space-y-4">
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                          <label htmlFor="answers" className="block text-white/80 text-sm font-medium mb-3">
+                            Your answers:
+                          </label>
+                          <textarea
+                            id="answers"
+                            value={userAnswers}
+                            onChange={(e) => setUserAnswers(e.target.value)}
+                            placeholder="Share your thoughts on the questions above. You can answer them all together or individually - whatever feels natural to you."
+                            className="w-full h-32 bg-white/5 border border-white/20 rounded-lg p-4 text-white placeholder-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+
+                        <div className="flex justify-center">
                           <button
-                            onClick={playRecording}
-                            className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+                            type="submit"
+                            disabled={!userAnswers.trim() || isSubmitting}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white/90 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isPlaying ? (
-                              <Pause className="h-6 w-6" />
-                            ) : (
-                              <Play className="h-6 w-6" />
-                            )}
-                          </button>
-                          
-                          <button
-                            onClick={resetRecording}
-                            className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
-                          >
-                            <RotateCcw className="h-6 w-6" />
-                          </button>
-                          
-                          <button
-                            onClick={submitRecording}
-                            disabled={isUploading}
-                            className="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full text-white font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                          >
-                            {isUploading ? (
+                            {isSubmitting ? (
                               <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                Saving...
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Submitting...
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="h-5 w-5" />
-                                Submit Recording
+                                <Send className="h-4 w-4" />
+                                Submit Answers
                               </>
                             )}
                           </button>
-                        </>
-                      )}
-                    </div>
+                        </div>
+                      </form>
+                    )}
                   </div>
-                </div>
+                )}
               </motion.div>
             )}
 
@@ -348,21 +450,21 @@ function GameContent() {
                 className="text-center space-y-8"
               >
                 <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle className="h-12 w-12 text-white" />
+                  <Send className="h-12 w-12 text-white" />
                 </div>
-                
+
                 <div className="space-y-4">
                   <h2 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
-                    Congratulations! 🎉
+                    Thank you for sharing!
                   </h2>
                   <p className="text-xl text-white/80">
-                    You've unlocked your special prize!
+                    Your answers will help us find better matches for you.
                   </p>
                   <p className="text-white/60">
-                    Your recording has been saved and will help us create better connections for you.
+                    Come back tomorrow for new questions and better connections.
                   </p>
                 </div>
-                
+
                 <div className="pt-8">
                   <Link
                     href="/dashboard"
