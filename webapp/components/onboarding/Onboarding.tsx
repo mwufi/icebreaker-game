@@ -14,6 +14,7 @@ interface OnboardingProps {
 
 export function Onboarding({ user, onComplete }: OnboardingProps) {
   const [step, setStep] = useState<'find' | 'create'>('find');
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     name: '',
     bio: '',
@@ -41,23 +42,23 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
 
   const handleLinkProfile = async (profileId: string) => {
     if (!user?.id) return;
-    
+
     await db.transact([
       db.tx.profiles[profileId].update({
         linkedUser: user.id
       })
     ]);
-    
+
     onComplete();
   };
 
   const handleCreateProfile = async () => {
     if (!user?.id || !profileData.name) return;
-    
+
     setIsCreating(true);
-    
+
     const newProfileId = id();
-    
+
     await db.transact([
       db.tx.profiles[newProfileId].update({
         name: profileData.name,
@@ -69,7 +70,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
         linkedUser: user.id
       })
     ]);
-    
+
     setIsCreating(false);
     onComplete();
   };
@@ -109,11 +110,11 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
                   >
                     <Sparkles className="h-8 w-8 text-yellow-500" />
                   </motion.div>
-                  
+
                   <h1 className="text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] text-white">
                     Welcome to Appy
                   </h1>
-                  
+
                   <p className="text-xl text-white/80">
                     Let's get you started by linking your profile
                   </p>
@@ -129,7 +130,20 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
                       linkedProfiles={[]}
                       onLink={handleLinkProfile}
                       onConfirmLink={handleLinkProfile}
+                      selectedId={selectedProfileId}
+                      onSelect={setSelectedProfileId}
                     />
+                    <div className="mt-6">
+                      {selectedProfileId && (
+                        <button
+                          onClick={() => handleLinkProfile(selectedProfileId)}
+                          className="w-full md:w-auto mx-auto flex items-center justify-center gap-3 px-8 md:px-10 py-4 md:py-5 bg-gradient-to-r from-green-600 via-emerald-600 to-green-500 hover:from-green-700 hover:via-emerald-700 hover:to-green-600 text-white text-lg md:text-xl font-medium rounded-full transition-all shadow-lg"
+                        >
+                          Link this profile
+                          <ArrowRight className="h-5 w-5 md:h-6 md:w-6" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -278,7 +292,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
                       Back
                     </button>
                   )}
-                  
+
                   <button
                     onClick={handleCreateProfile}
                     disabled={!profileData.name || isCreating}

@@ -22,18 +22,20 @@ interface ProfileSearchProps {
     linkedProfiles: Profile[];
     onLink: (profileId: string) => void;
     onConfirmLink?: (profileId: string) => void;
+    selectedId?: string | null;
+    onSelect?: (profileId: string) => void;
 }
 
-export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink }: ProfileSearchProps) {
+export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink, selectedId, onSelect }: ProfileSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const allProfiles = [...profiles, ...linkedProfiles];
-    
+
     const filteredProfiles = useMemo(() => {
         if (!searchQuery.trim()) return allProfiles;
-        
+
         const query = searchQuery.toLowerCase();
-        return allProfiles.filter(profile => 
+        return allProfiles.filter(profile =>
             profile.name.toLowerCase().includes(query) ||
             profile.tagline?.toLowerCase().includes(query)
         );
@@ -69,46 +71,53 @@ export function ProfileSearch({ profiles, linkedProfiles, onLink, onConfirmLink 
                             <p className="text-white/50">No profiles found matching your search</p>
                         </div>
                     ) : (
-                        filteredProfiles.map((profile) => (
-                            <div 
-                                key={profile.id} 
-                                className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg hover:bg-white/10 transition-all"
-                            >
-                                <Avatar className="h-12 w-12 border border-white/20">
-                                    <AvatarImage 
-                                        src={profile.profilePicUrl} 
-                                        alt={profile.name}
-                                    />
-                                    <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
-                                        {getInitials(profile.name)}
-                                    </AvatarFallback>
-                                </Avatar>
-                                
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-white truncate">
-                                        {profile.name}
-                                    </h3>
-                                    {profile.tagline && (
-                                        <p className="text-sm text-white/60">
-                                            {profile.tagline}
-                                        </p>
-                                    )}
-                                </div>
+                        filteredProfiles.map((profile) => {
+                            const isLinked = Boolean(profile.linkedUser);
+                            const isSelected = !isLinked && selectedId === profile.id;
+                            return (
+                                <button
+                                    key={profile.id}
+                                    type="button"
+                                    onClick={() => {
+                                        if (isLinked) return;
+                                        if (onSelect) onSelect(profile.id);
+                                    }}
+                                    className={`w-full text-left flex items-center gap-4 p-4 rounded-lg transition-all border backdrop-blur-sm ${isLinked
+                                        ? 'bg-white/[0.04] border-white/10 opacity-80 cursor-not-allowed'
+                                        : isSelected
+                                            ? 'bg-green-600/20 border-green-500/40 hover:bg-green-600/25'
+                                            : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                        }`}
+                                >
+                                    <Avatar className="h-12 w-12 border border-white/20">
+                                        <AvatarImage
+                                            src={profile.profilePicUrl}
+                                            alt={profile.name}
+                                        />
+                                        <AvatarFallback className="bg-gradient-to-br from-orange-600 to-red-600 text-white">
+                                            {getInitials(profile.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
 
-                                {profile.linkedUser ? (
-                                    <span className="text-sm text-white/40 px-3 py-1 bg-white/5 rounded-full">
-                                        Already linked
-                                    </span>
-                                ) : (
-                                    <button
-                                        onClick={() => onConfirmLink ? onConfirmLink(profile.id) : onLink(profile.id)}
-                                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-full transition-all whitespace-nowrap"
-                                    >
-                                        Link This Profile
-                                    </button>
-                                )}
-                            </div>
-                        ))
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium text-white truncate">
+                                            {profile.name}
+                                        </h3>
+                                        {profile.tagline && (
+                                            <p className="text-sm text-white/60">
+                                                {profile.tagline}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {isLinked ? (
+                                        <span className="ml-3 text-xs text-white/60 px-2 py-1 bg-white/5 rounded-full">
+                                            Already linked
+                                        </span>
+                                    ) : null}
+                                </button>
+                            );
+                        })
                     )}
                 </div>
             </ScrollArea>
