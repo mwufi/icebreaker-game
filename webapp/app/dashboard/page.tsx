@@ -162,10 +162,7 @@ function DashboardContent() {
                         60 Second Challenge
                       </h3>
                       <p className="text-white/90 text-lg">
-                        Record yourself answering today's prompts
-                      </p>
-                      <p className="text-white/70 text-sm">
-                        Complete to unlock a special prize ✨
+                        Answer today’s prompts for better matches tomorrow
                       </p>
                     </div>
                     <div className="hidden md:block">
@@ -234,12 +231,12 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Floating Get Better Connections Button */}
+      {/* Floating Get Better Connections Button - Hidden for now */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 md:bottom-8 w-full"
+        className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 md:bottom-8 w-full hidden"
       >
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
