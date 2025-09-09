@@ -6,11 +6,11 @@ import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import Link from 'next/link';
-import { 
-  MessageSquare, 
-  Target, 
-  User, 
-  Sparkles, 
+import {
+  MessageSquare,
+  Target,
+  User,
+  Sparkles,
   PenTool,
   Calendar,
   Plus,
@@ -198,7 +198,7 @@ function ProfileContent() {
                   {profile ? getInitials(profile.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1 space-y-2">
                 <h1 className="text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] text-white">
                   {profile?.name || 'Anonymous'}
@@ -234,7 +234,7 @@ function ProfileContent() {
                 </button>
               )}
             </div>
-            
+
             {isEditingBio ? (
               <div className="space-y-3">
                 <Textarea
@@ -305,7 +305,7 @@ function ProfileContent() {
                 </button>
               )}
             </div>
-            
+
             {isEditingPreferences ? (
               <div className="space-y-3">
                 <Textarea
@@ -372,6 +372,9 @@ function ProfileContent() {
                 Add Note
               </button>
             </div>
+            <p className="text-white/50 text-xs md:text-sm">
+              These are used to tell the AI more about what you want.
+            </p>
 
             {/* Add Note Form */}
             <AnimatePresence>
@@ -531,14 +534,14 @@ function ProfileContent() {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-center pt-8 space-y-2"
           >
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="text-white/30 hover:text-white/50 text-sm transition-colors block"
             >
               ← Back to Dashboard
             </Link>
-            <Link 
-              href="/connections" 
+            <Link
+              href="/connections"
               className="text-white/30 hover:text-white/50 text-sm transition-colors block"
             >
               View Connections
