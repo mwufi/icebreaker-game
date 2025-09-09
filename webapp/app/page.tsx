@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
+import Image from 'next/image';
 
 // Simple redirect component
 function DashboardRedirect() {
@@ -22,22 +23,32 @@ function DashboardRedirect() {
   );
 }
 
-const story = [
+type StoryItem = 
+  | { type: "hero"; text: string }
+  | { type: "image"; src: string; alt: string }
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "divider" }
+  | { type: "closing"; text: string }
+  | { type: "question"; text: string };
+
+const story: StoryItem[] = [
   {
-    type: "heading",
+    type: "hero",
     text: "Welcome to Something New"
   },
   {
-    type: "paragraph",
-    text: "Yesterday was great. We met, we talked, we connected. We shared stories over coffee, laughed at inside jokes that didn't exist an hour before, and discovered that strangers can feel like old friends in the right moment."
+    type: "image",
+    src: "/assets/gem.jpg",
+    alt: "Gem"
   },
   {
     type: "paragraph",
-    text: "We came away with new perspectives, unexpected commonalities, and that warm feeling of genuine human connection."
+    text: "Yesterday we met, talked, and laughed — proof that strangers can feel like old friends in an instant. We left with fresh perspectives, unexpected common ground, and that spark of genuine connection."
   },
   {
     type: "paragraph",
-    text: "And yet what's magical about meeting people is how much we have yet to discover. The conversations that almost happened. The stories left untold. What if you had five more minutes? What if you had asked that one question? What if the right person was just one introduction away?"
+    text: "But the real magic is in what's still unsaid, the questions not asked, the stories not told. What if five more minutes, or one more introduction, changed everything?"
   },
   {
     type: "heading",
@@ -45,38 +56,15 @@ const story = [
   },
   {
     type: "paragraph",
-    text: "Appy is a layer on top of life for connecting with each other in a new, meaningful way."
+    text: "Appy isn't a social platform. It's a pro-social experiment — an extra layer of life that gives serendipity and connection more room to grow."
   },
   {
     type: "paragraph",
-    text: "We're not building a social platform. We're building a pro-social device — a small experiment in seeing what happens when we give serendipity, authenticity, and human connection just a little more room to grow."
+    text: "Every day, you're matched with someone new. No photos. No profiles. Just people, ready to meet each other as they are."
   },
   {
     type: "paragraph",
-    text: "Every day, we match you with someone new. Someone whose thoughts resonate with yours. Someone who sees the world through a compatible lens. No photos to judge, no profiles to perfect — just two people, ready to connect."
-  },
-  {
-    type: "paragraph",
-    text: "Technology doesn't just change what we do; it changes who we are. Our mission — should you choose to accept it — is simple:"
-  },
-  {
-    type: "paragraph",
-    text: "Stay curious, explore deeper, and help shape what it means to meet each other at our best."
-  },
-  {
-    type: "divider"
-  },
-  {
-    type: "closing",
-    text: "This is Appy."
-  },
-  {
-    type: "closing",
-    text: "Your sanctuary for authentic connections."
-  },
-  {
-    type: "question",
-    text: "Are you ready to meet someone who gets you?"
+    text: "Technology doesn't just change what we do; it shapes who we become. Our mission is simple: stay curious, go deeper, and explore what it means to meet each other at our best."
   }
 ];
 
@@ -120,7 +108,53 @@ export default function Home() {
           {/* Story content */}
           <div className="relative z-10 px-6 py-32 max-w-3xl mx-auto">
             {story.map((item, index) => {
-              if (item.type === "heading") {
+              if (item.type === "hero") {
+                return (
+                  <motion.h1
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="text-white text-5xl md:text-6xl lg:text-7xl font-[family-name:var(--font-merriweather)] font-normal mb-16 text-center"
+                  >
+                    {item.text}
+                  </motion.h1>
+                );
+              } else if (item.type === "image") {
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 1.2,
+                        delay: 0.1,
+                        ease: [0.25, 0.1, 0.25, 1]
+                      }
+                    }}
+                    viewport={{ once: false, margin: "-100px" }}
+                    className="w-full mb-16 rounded-lg overflow-hidden"
+                  >
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      width={1200}
+                      height={800}
+                      className="w-full h-auto"
+                    />
+                  </motion.div>
+                );
+              } else if (item.type === "heading") {
                 return (
                   <motion.h2
                     key={index}
@@ -135,7 +169,7 @@ export default function Home() {
                       }
                     }}
                     viewport={{ once: false, margin: "-100px" }}
-                    className="text-white text-4xl md:text-5xl font-[family-name:var(--font-merriweather)] font-normal mb-8 mt-24"
+                    className="text-white text-3xl md:text-4xl font-[family-name:var(--font-merriweather)] font-normal mb-8 mt-24"
                   >
                     {item.text}
                   </motion.h2>
@@ -155,7 +189,7 @@ export default function Home() {
                       }
                     }}
                     viewport={{ once: false, margin: "-100px" }}
-                    className="text-white/90 text-xl md:text-2xl leading-relaxed font-[family-name:var(--font-merriweather)] font-light mb-8"
+                    className="text-white/90 text-lg md:text-xl leading-relaxed font-[family-name:var(--font-merriweather)] font-light mb-8"
                   >
                     {item.text}
                   </motion.p>

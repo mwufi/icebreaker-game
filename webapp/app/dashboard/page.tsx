@@ -151,7 +151,7 @@ function DashboardContent() {
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl md:text-2xl font-[family-name:var(--font-merriweather)] text-white">
-                Today's Connections
+                Today's <span className="italic">Connections</span>
               </h2>
               {connections.length > 0 && (
                 <Link
@@ -193,7 +193,7 @@ function DashboardContent() {
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </button>
               </DrawerTrigger>
-              <DrawerContent className="max-h-[90vh] bg-black border-white/10">
+              <DrawerContent className="max-h-[90vh] bg-black border-white/10 max-w-4xl mx-auto">
                 <DrawerHeader className="text-center">
                   <DrawerTitle className="text-2xl font-[family-name:var(--font-merriweather)] text-white">
                     Tell us more about you
