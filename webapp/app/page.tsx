@@ -34,15 +34,6 @@ type StoryItem =
 
 const story: StoryItem[] = [
   {
-    type: "hero",
-    text: "Welcome to Something New"
-  },
-  {
-    type: "image",
-    src: "/assets/gem.jpg",
-    alt: "Gem"
-  },
-  {
     type: "paragraph",
     text: "Yesterday we met, talked, and laughed — proof that strangers can feel like old friends in an instant. We left with fresh perspectives, unexpected common ground, and that spark of genuine connection."
   },
