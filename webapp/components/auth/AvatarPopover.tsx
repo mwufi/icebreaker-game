@@ -29,6 +29,7 @@ export function AvatarPopover() {
 
     const menuItems = [
         { label: 'Profile', icon: IconUser, href: '/profile' },
+        { label: 'Matches', icon: IconUser, href: '/dashboard' },
         { label: 'Community', icon: IconUsers, href: '/community' },
         { label: 'Settings', icon: IconSettings, href: '/settings' },
         {
