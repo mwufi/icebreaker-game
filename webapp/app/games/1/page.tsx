@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
-import { Mic, MicOff, Play, Pause, RotateCcw, CheckCircle } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, RotateCcw, CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { db } from '@/lib/instantdb';
+import { id } from '@instantdb/react';
 
 // Day 1 questions from seedQuestions
 const gameQuestions = [
@@ -25,11 +27,26 @@ function GameContent() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const { user } = db.useAuth();
+  const { data } = db.useQuery({
+    $users: {
+      $: {
+        where: {
+          id: user?.id || ''
+        }
+      },
+      odfProfile: {}
+    }
+  });
+  
+  const profile = data?.$users?.[0]?.odfProfile?.[0];
 
   // Cleanup on unmount
   useEffect(() => {
@@ -116,13 +133,44 @@ function GameContent() {
   };
 
   const submitRecording = async () => {
-    if (!audioBlob) return;
+    if (!audioBlob || !profile) return;
     
-    // TODO: Upload audio blob to storage
-    console.log('Submitting recording...', audioBlob);
+    setIsUploading(true);
     
-    // Show completion screen
-    setScreen('complete');
+    try {
+      // Create a unique file path
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filePath = `games/audio-challenge/${profile.id}/${timestamp}.webm`;
+      
+      // Convert blob to File object for upload
+      const audioFile = new File([audioBlob], `${timestamp}.webm`, { 
+        type: 'audio/webm' 
+      });
+      
+      // Upload the file using InstantDB storage
+      await db.storage.uploadFile(filePath, audioFile);
+      
+      // Create a game completion record
+      // Note: Files are automatically linked via their path
+      const gameRecordId = id();
+      await db.transact([
+        db.tx.gameCompletions[gameRecordId].update({
+          gameType: 'audio-challenge-day1',
+          completedAt: new Date(),
+          audioFilePath: filePath,
+        }).link({
+          profile: profile.id,
+        })
+      ]);
+      
+      // Show completion screen
+      setScreen('complete');
+    } catch (error) {
+      console.error('Error uploading recording:', error);
+      alert('Failed to save recording. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -269,10 +317,20 @@ function GameContent() {
                           
                           <button
                             onClick={submitRecording}
-                            className="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full text-white font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
+                            disabled={isUploading}
+                            className="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full text-white font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                           >
-                            <CheckCircle className="h-5 w-5" />
-                            Submit Recording
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-5 w-5" />
+                                Submit Recording
+                              </>
+                            )}
                           </button>
                         </>
                       )}

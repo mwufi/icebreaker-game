@@ -3,7 +3,7 @@
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
-  // We inferred 6 attributes!
+  // We inferred 11 attributes!
   // Take a look at this schema, and if everything looks good,
   // run `push schema` again to enforce the types.
   entities: {
@@ -25,11 +25,18 @@ const _schema = i.schema({
       questionText: i.string().unique().indexed(),
       tags: i.string().optional(),
     }),
+    aiNotes: i.entity({}),
     dailyConnections: i.entity({
       accepted: i.boolean().optional(),
       date: i.date().indexed(),
+      matchFeedback: i.string().optional(),
       otherSideAccepted: i.boolean().optional(),
       text: i.string(),
+    }),
+    gameCompletions: i.entity({
+      completedAt: i.date().indexed().optional(),
+      gameType: i.string().indexed().optional(),
+      audioFilePath: i.string().optional(),
     }),
     groups: i.entity({
       name: i.string().indexed(),
@@ -54,13 +61,20 @@ const _schema = i.schema({
       profile: i.string().optional(),
     }),
     profiles: i.entity({
+      bio: i.string().optional(),
       createdAt: i.number(),
       isAdmin: i.boolean().indexed().optional(),
+      lookingFor: i.string().optional(),
       name: i.string().unique().indexed(),
+      personality: i.string().optional(),
       profilePicUrl: i.string().optional(),
       profileRawHtml: i.string().optional(),
       profileText: i.string().optional(),
       tagline: i.string().optional(),
+      values: i.string().optional(),
+    }),
+    users: i.entity({
+      hasSeenTutorial: i.boolean().optional(),
     }),
   },
   links: {
@@ -122,6 +136,32 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "potentialConnections",
+      },
+    },
+    gameCompletionsAudioFile: {
+      forward: {
+        on: "gameCompletions",
+        has: "one",
+        label: "audioFile",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "$files",
+        has: "one",
+        label: "gameCompletions",
+        onDelete: "cascade",
+      },
+    },
+    gameCompletionsProfile: {
+      forward: {
+        on: "gameCompletions",
+        has: "one",
+        label: "profile",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "gameCompletions",
       },
     },
     groupsMembers: {
