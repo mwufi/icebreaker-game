@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Trophy, Clock } from 'lucide-react';
+import { ArrowUp, Trophy, Clock, Zap } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import { useUser } from '@clerk/nextjs';
@@ -14,6 +14,22 @@ import { useUser } from '@clerk/nextjs';
 const DAILY_PROMPT = "What happens when founders' wildest startup dreams become tomorrow's reality?";
 const REVEAL_TIME = "6:00 PM";
 const MAX_VOTES = 5;
+const TARGET_VOTES = 10;
+
+// Vote weight system
+const getVoteWeight = (totalVotes: number): number => {
+    if (totalVotes >= 1 && totalVotes <= 3) return 1;
+    if (totalVotes >= 4 && totalVotes <= 6) return 2;
+    if (totalVotes >= 7 && totalVotes <= 10) return 3;
+    return 1; // Default
+};
+
+const getVoteWeightProgress = (totalVotes: number) => {
+    if (totalVotes <= 3) return { current: totalVotes, max: 3, nextWeight: 2 };
+    if (totalVotes <= 6) return { current: totalVotes - 3, max: 3, nextWeight: 3 };
+    if (totalVotes <= 10) return { current: totalVotes - 6, max: 4, nextWeight: null };
+    return { current: 0, max: 0, nextWeight: null };
+};
 
 interface HeadlineItem {
     id: string;
@@ -26,6 +42,8 @@ export default function NewsPage() {
     const { user } = useUser();
     const [currentView, setCurrentView] = useState<'voting' | 'leaderboard'>('voting');
     const [timeUntilReveal, setTimeUntilReveal] = useState('4h 23m');
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [votedItemId, setVotedItemId] = useState<string | null>(null);
 
     // Get current user's profile
     const { data: profileData } = db.useQuery({
@@ -97,19 +115,43 @@ export default function NewsPage() {
         // Create a unique key for this vote
         const voteKey = `${currentProfile.id}-${headlineId}`;
 
-        // Create a new vote with unique key
+        // Calculate new vote weight
+        const currentTotalVotes = userVotedIds.length;
+        const newTotalVotes = currentTotalVotes + 1;
+        const newVoteWeight = getVoteWeight(newTotalVotes);
+        const oldVoteWeight = getVoteWeight(currentTotalVotes);
+
+        // Trigger animations
+        setVotedItemId(headlineId);
+        if (newVoteWeight > oldVoteWeight) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
+        }
+
+        // Reset voted item animation after a short delay
+        setTimeout(() => setVotedItemId(null), 1000);
+
+        // Create a new vote with unique key and update profile vote weight
         db.transact([
             db.tx.headlineItemVotes[id()].update({
                 key: voteKey
             }).link({
                 voter: currentProfile.id,
                 item: headlineId
+            }),
+            db.tx.profiles[currentProfile.id].update({
+                voteWeight: newVoteWeight
             })
         ]);
     };
 
     const sortedHeadlines = [...headlines].sort((a, b) => b.votes.length - a.votes.length);
     const remainingVotes = MAX_VOTES - userVotedIds.length;
+
+    // Calculate vote weight progress
+    const totalVotes = userVotedIds.length;
+    const currentVoteWeight = getVoteWeight(totalVotes);
+    const progress = getVoteWeightProgress(totalVotes);
 
     if (currentView === 'leaderboard') {
         return (
@@ -176,7 +218,18 @@ export default function NewsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black">
+        <div className="min-h-screen bg-black relative">
+            {/* Confetti Animation */}
+            {showConfetti && (
+                <div className="fixed inset-0 pointer-events-none z-50">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div className="text-6xl animate-bounce">🎉</div>
+                        <div className="text-4xl animate-pulse text-red-400 font-mono text-center mt-2">
+                            VOTE WEIGHT UP!
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="border-b border-red-900/50 bg-gray-900">
                 <div className="max-w-4xl mx-auto px-4 py-4">
@@ -206,12 +259,18 @@ export default function NewsPage() {
                                         size="sm"
                                         onClick={() => handleVote(headline.id)}
                                         disabled={userVotedIds.length >= MAX_VOTES && !hasUserVotedOnItem(headline.id)}
-                                        className={`w-14 h-10 p-0 font-mono text-xs transition-all transform hover:scale-105 ${hasUserVotedOnItem(headline.id)
-                                            ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/50'
-                                            : 'bg-gray-800 hover:bg-red-900 text-red-400 border-2 border-red-800 hover:border-red-600'
+                                        className={`w-14 h-10 p-0 font-mono text-xs transition-all transform hover:scale-105 ${votedItemId === headline.id
+                                                ? 'animate-pulse bg-yellow-500 text-black border-2 border-yellow-300 shadow-lg shadow-yellow-500/50 scale-110'
+                                                : hasUserVotedOnItem(headline.id)
+                                                    ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/50'
+                                                    : 'bg-gray-800 hover:bg-red-900 text-red-400 border-2 border-red-800 hover:border-red-600'
                                             }`}
                                     >
-                                        <ArrowUp className="w-4 h-4" />
+                                        {votedItemId === headline.id ? (
+                                            <Zap className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <ArrowUp className="w-4 h-4" />
+                                        )}
                                     </Button>
                                     <span className="text-red-400 text-xs font-mono">{headline.votes.length}</span>
                                 </div>
@@ -226,6 +285,32 @@ export default function NewsPage() {
                 <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-red-900/50 p-4">
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center">
+                            {/* Vote Weight Progress */}
+                            <div className="mb-3">
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                    <Zap className="w-4 h-4 text-yellow-400" />
+                                    <span className="text-yellow-400 font-mono text-sm">
+                                        VOTE WEIGHT: {currentVoteWeight}x
+                                    </span>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="w-full bg-gray-800 rounded-full h-2 mb-1">
+                                    <div
+                                        className="bg-gradient-to-r from-red-500 to-yellow-500 h-2 rounded-full transition-all duration-500"
+                                        style={{ width: `${(progress.current / progress.max) * 100}%` }}
+                                    ></div>
+                                </div>
+
+                                {/* Progress Text */}
+                                <p className="text-gray-400 font-mono text-xs">
+                                    {progress.nextWeight ?
+                                        `${progress.current}/${progress.max} to ${progress.nextWeight}x weight` :
+                                        'MAX VOTE WEIGHT ACHIEVED!'
+                                    }
+                                </p>
+                            </div>
+
                             <p className="text-red-400 mb-3 font-mono text-sm">
                                 {remainingVotes} VOTES REMAINING
                             </p>
