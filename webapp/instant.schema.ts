@@ -212,6 +212,18 @@ const _schema = i.schema({
         label: "votes",
       },
     },
+    headlineItemsAuthor: {
+      forward: {
+        on: "headlineItems",
+        has: "one",
+        label: "author",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "headlineItems",
+      },
+    },
     inviteLinkIntendedInvitee: {
       forward: {
         on: "inviteLink",

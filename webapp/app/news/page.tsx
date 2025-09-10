@@ -263,6 +263,7 @@ export default function NewsPage() {
     const currentTime = new Date();
     const revealTime = contest?.revealTime ? new Date(contest.revealTime) : null;
     const shouldShowNames = contest?.showNames || (revealTime && currentTime >= revealTime);
+    console.log("shouldShowNames", shouldShowNames)
 
     if (currentView === 'leaderboard') {
         return (
