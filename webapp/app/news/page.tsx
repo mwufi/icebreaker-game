@@ -6,13 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, MoreHorizontal, Trophy, Clock, Share2 } from 'lucide-react';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { ArrowUp, Trophy, Clock } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import { useUser } from '@clerk/nextjs';
@@ -58,12 +52,20 @@ export default function NewsPage() {
                 where: {
                     voter: currentProfile?.id
                 }
-            }
+            },
+            item: {}
         }
     });
 
     const userVotes = userVotesData?.headlineItemVotes || [];
-    const userVotedIds = userVotes.map(vote => vote.item?.id).filter(Boolean);
+    const userVotedIds = userVotes.map((vote: any) => vote.item?.id).filter(Boolean);
+
+    // Helper function to check if user has voted on an item
+    const hasUserVotedOnItem = (itemId: string) => {
+        if (!currentProfile) return false;
+        const voteKey = `${currentProfile.id}-${itemId}`;
+        return userVotes.some(vote => vote.key === voteKey);
+    };
 
     // Transform headlines data
     const headlines: HeadlineItem[] = (headlinesData?.headlineItems || []).map(item => ({
@@ -88,22 +90,22 @@ export default function NewsPage() {
     }, []);
 
     const handleVote = (headlineId: string) => {
-        if (!currentProfile || userVotedIds.length >= MAX_VOTES || userVotedIds.includes(headlineId)) {
+        if (!currentProfile || userVotedIds.length >= MAX_VOTES || hasUserVotedOnItem(headlineId)) {
             return;
         }
 
-        // Create a new vote
+        // Create a unique key for this vote
+        const voteKey = `${currentProfile.id}-${headlineId}`;
+
+        // Create a new vote with unique key
         db.transact([
-            db.tx.headlineItemVotes[id()].update({}).link({
+            db.tx.headlineItemVotes[id()].update({
+                key: voteKey
+            }).link({
                 voter: currentProfile.id,
                 item: headlineId
             })
         ]);
-    };
-
-    const handleReport = (headlineId: string) => {
-        console.log('Reported headline:', headlineId);
-        // Handle report functionality
     };
 
     const sortedHeadlines = [...headlines].sort((a, b) => b.votes.length - a.votes.length);
@@ -124,7 +126,7 @@ export default function NewsPage() {
                 </div>
 
                 {/* Leaderboard */}
-                <div className="max-w-4xl mx-auto p-4 space-y-2">
+                <div className="max-w-4xl mx-auto p-4 pb-40 space-y-2">
                     {sortedHeadlines.map((headline, index) => (
                         <Card key={headline.id} className={`bg-gray-900 border-gray-700 ${headline.isYours ? 'ring-2 ring-red-500 bg-red-950/30' : ''}`}>
                             <CardContent className="p-3">
@@ -153,24 +155,21 @@ export default function NewsPage() {
                         </Card>
                     ))}
 
-                    {/* Share Button */}
-                    <Card className="bg-gray-900 border-gray-700">
-                        <CardContent className="p-3">
-                            <Button className="w-full bg-red-800 hover:bg-red-700 text-white border-none font-mono text-sm">
-                                <Share2 className="w-4 h-4 mr-2" />
-                                EXPORT RESULTS
-                            </Button>
-                        </CardContent>
-                    </Card>
+                    {/* Bottom padding to account for fixed footer */}
+                    <div className="h-32"></div>
+                </div>
 
-                    {/* Back to Voting */}
-                    <Button
-                        variant="ghost"
-                        className="w-full bg-gray-800 text-red-400 hover:bg-gray-700 border-gray-600 font-mono text-sm"
-                        onClick={() => setCurrentView('voting')}
-                    >
-                        RETURN TO VOTING
-                    </Button>
+                {/* Fixed Footer */}
+                <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-red-900/50 p-4">
+                    <div className="max-w-4xl mx-auto">
+                        <Button
+                            variant="ghost"
+                            className="w-full bg-gray-800 text-red-400 hover:bg-gray-700 border-gray-600 font-mono text-sm"
+                            onClick={() => setCurrentView('voting')}
+                        >
+                            RETURN TO VOTING
+                        </Button>
+                    </div>
                 </div>
             </div>
         );
@@ -190,7 +189,7 @@ export default function NewsPage() {
             </div>
 
             {/* Headlines List */}
-            <div className="max-w-4xl mx-auto p-4 space-y-2">
+            <div className="max-w-4xl mx-auto p-4 pb-40 space-y-2">
                 {headlines.map((headline) => (
                     <Card key={headline.id} className="bg-gray-900 border-gray-700 hover:border-red-800 transition-colors">
                         <CardContent className="p-3">
@@ -199,18 +198,6 @@ export default function NewsPage() {
                                     <p className="text-gray-200 text-sm leading-tight mb-1">{headline.text}</p>
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500 text-xs font-mono">ANONYMOUS</span>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="w-6 h-6 p-0 text-gray-500 hover:text-red-400">
-                                                    <MoreHorizontal className="w-3 h-3" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                                                <DropdownMenuItem onClick={() => handleReport(headline.id)} className="text-gray-300 hover:text-red-400">
-                                                    Report
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
                                     </div>
                                 </div>
 
@@ -218,8 +205,8 @@ export default function NewsPage() {
                                     <Button
                                         size="sm"
                                         onClick={() => handleVote(headline.id)}
-                                        disabled={userVotedIds.length >= MAX_VOTES && !userVotedIds.includes(headline.id)}
-                                        className={`w-14 h-10 p-0 font-mono text-xs transition-all transform hover:scale-105 ${userVotedIds.includes(headline.id)
+                                        disabled={userVotedIds.length >= MAX_VOTES && !hasUserVotedOnItem(headline.id)}
+                                        className={`w-14 h-10 p-0 font-mono text-xs transition-all transform hover:scale-105 ${hasUserVotedOnItem(headline.id)
                                             ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/50'
                                             : 'bg-gray-800 hover:bg-red-900 text-red-400 border-2 border-red-800 hover:border-red-600'
                                             }`}
@@ -235,19 +222,26 @@ export default function NewsPage() {
 
                 <Separator className="bg-gray-800 my-4" />
 
-                {/* Footer */}
-                <div className="text-center py-4">
-                    <p className="text-red-400 mb-4 font-mono text-sm">
-                        {remainingVotes} VOTES REMAINING
-                    </p>
-                    <Button
-                        variant="outline"
-                        className="bg-gray-900 text-red-400 hover:bg-red-900 border-red-800 hover:border-red-600 font-mono"
-                        onClick={() => setCurrentView('leaderboard')}
-                    >
-                        ACCESS LEADERBOARD
-                    </Button>
+                {/* Fixed Footer */}
+                <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-red-900/50 p-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="text-center">
+                            <p className="text-red-400 mb-3 font-mono text-sm">
+                                {remainingVotes} VOTES REMAINING
+                            </p>
+                            <Button
+                                variant="outline"
+                                className="bg-gray-900 text-red-400 hover:bg-red-900 border-red-800 hover:border-red-600 font-mono w-full"
+                                onClick={() => setCurrentView('leaderboard')}
+                            >
+                                ACCESS LEADERBOARD
+                            </Button>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Bottom padding to account for fixed footer */}
+                <div className="h-32"></div>
             </div>
         </div>
     );

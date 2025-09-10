@@ -44,7 +44,9 @@ const _schema = i.schema({
     headlineItems: i.entity({
       text: i.string(),
     }),
-    headlineItemVotes: i.entity({}),
+    headlineItemVotes: i.entity({
+      key: i.string().unique().indexed().optional(),
+    }),
     inviteLink: i.entity({
       code: i.string().unique().indexed(),
       createdAt: i.number().optional(),
