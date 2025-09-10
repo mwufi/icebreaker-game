@@ -10,10 +10,11 @@ import { ArrowUp, Trophy, Clock, Zap } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import { useUser } from '@clerk/nextjs';
+import JSConfetti from 'js-confetti';
 
 const DAILY_PROMPT = "What happens when founders' wildest startup dreams become tomorrow's reality?";
 const REVEAL_TIME = "6:00 PM";
-const MAX_VOTES = 5;
+const MAX_VOTES = 15;
 const TARGET_VOTES = 10;
 
 // Vote weight system
@@ -44,6 +45,7 @@ export default function NewsPage() {
     const [timeUntilReveal, setTimeUntilReveal] = useState('4h 23m');
     const [showConfetti, setShowConfetti] = useState(false);
     const [votedItemId, setVotedItemId] = useState<string | null>(null);
+    const [animateVoteWeight, setAnimateVoteWeight] = useState(false);
 
     // Get current user's profile
     const { data: profileData } = db.useQuery({
@@ -115,8 +117,8 @@ export default function NewsPage() {
         // Create a unique key for this vote
         const voteKey = `${currentProfile.id}-${headlineId}`;
 
-        // Calculate new vote weight
-        const currentTotalVotes = userVotedIds.length;
+        // Calculate new vote weight based on total lifetime votes
+        const currentTotalVotes = userVotes.length; // Total votes from database
         const newTotalVotes = currentTotalVotes + 1;
         const newVoteWeight = getVoteWeight(newTotalVotes);
         const oldVoteWeight = getVoteWeight(currentTotalVotes);
@@ -124,6 +126,72 @@ export default function NewsPage() {
         // Trigger animations
         setVotedItemId(headlineId);
         if (newVoteWeight > oldVoteWeight) {
+            // Spectacular confetti celebration!
+            const jsConfetti = new JSConfetti();
+
+            // Different celebrations based on weight level
+            if (newVoteWeight === 2) {
+                // 2x Weight Celebration - Extra special!
+                jsConfetti.addConfetti({
+                    emojis: ['⚡', '🔥', '💥', '🚀', '⭐', '✨', '💫', '🎆', '🎇'],
+                    emojiSize: 120,
+                    confettiNumber: 75,
+                });
+
+                // Multiple bursts for 2x weight
+                setTimeout(() => {
+                    jsConfetti.addConfetti({
+                        confettiColors: ['#ff0000', '#ffaa00', '#ffff00', '#00ff00', '#00aaff', '#aa00ff'],
+                        confettiRadius: 8,
+                        confettiNumber: 150,
+                    });
+                }, 300);
+
+                setTimeout(() => {
+                    jsConfetti.addConfetti({
+                        emojis: ['⚡', '🔥', '💥'],
+                        emojiSize: 80,
+                        confettiNumber: 30,
+                    });
+                }, 800);
+            } else if (newVoteWeight === 3) {
+                // 3x Weight Celebration - MAXIMUM POWER!
+                jsConfetti.addConfetti({
+                    emojis: ['👑', '⚡', '🔥', '💥', '🚀', '⭐', '✨', '💫', '🎆', '🎇', '🌟'],
+                    emojiSize: 150,
+                    confettiNumber: 100,
+                });
+
+                // Multiple massive bursts for 3x weight
+                setTimeout(() => {
+                    jsConfetti.addConfetti({
+                        confettiColors: ['#ff0000', '#ffaa00', '#ffff00', '#00ff00', '#00aaff', '#aa00ff', '#ff00ff'],
+                        confettiRadius: 10,
+                        confettiNumber: 200,
+                    });
+                }, 200);
+
+                setTimeout(() => {
+                    jsConfetti.addConfetti({
+                        emojis: ['👑', '⚡', '🔥'],
+                        emojiSize: 100,
+                        confettiNumber: 50,
+                    });
+                }, 600);
+
+                setTimeout(() => {
+                    jsConfetti.addConfetti({
+                        confettiColors: ['#ff0000', '#ffff00', '#ff00ff'],
+                        confettiRadius: 12,
+                        confettiNumber: 100,
+                    });
+                }, 1000);
+            }
+
+            // Animate vote weight display
+            setAnimateVoteWeight(true);
+            setTimeout(() => setAnimateVoteWeight(false), 2000);
+
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 3000);
         }
@@ -148,10 +216,10 @@ export default function NewsPage() {
     const sortedHeadlines = [...headlines].sort((a, b) => b.votes.length - a.votes.length);
     const remainingVotes = MAX_VOTES - userVotedIds.length;
 
-    // Calculate vote weight progress
-    const totalVotes = userVotedIds.length;
-    const currentVoteWeight = getVoteWeight(totalVotes);
-    const progress = getVoteWeightProgress(totalVotes);
+    // Calculate vote weight progress based on total lifetime votes
+    const totalLifetimeVotes = userVotes.length; // Total votes from database
+    const currentVoteWeight = getVoteWeight(totalLifetimeVotes);
+    const progress = getVoteWeightProgress(totalLifetimeVotes);
 
     if (currentView === 'leaderboard') {
         return (
@@ -223,9 +291,18 @@ export default function NewsPage() {
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-50">
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="text-6xl animate-bounce">🎉</div>
+                        <div className="text-6xl animate-bounce">
+                            {currentVoteWeight === 2 ? '⚡' : currentVoteWeight === 3 ? '👑' : '🎉'}
+                        </div>
                         <div className="text-4xl animate-pulse text-red-400 font-mono text-center mt-2">
-                            VOTE WEIGHT UP!
+                            {currentVoteWeight === 2 ? '2X POWER UNLOCKED!' :
+                                currentVoteWeight === 3 ? 'MAXIMUM POWER ACHIEVED!' :
+                                    'VOTE WEIGHT UP!'}
+                        </div>
+                        <div className="text-2xl animate-bounce text-yellow-400 font-mono text-center mt-1">
+                            {currentVoteWeight === 2 ? 'Your votes now count DOUBLE!' :
+                                currentVoteWeight === 3 ? 'Your votes now count TRIPLE!' :
+                                    'Power increased!'}
                         </div>
                     </div>
                 </div>
@@ -260,10 +337,10 @@ export default function NewsPage() {
                                         onClick={() => handleVote(headline.id)}
                                         disabled={userVotedIds.length >= MAX_VOTES && !hasUserVotedOnItem(headline.id)}
                                         className={`w-14 h-10 p-0 font-mono text-xs transition-all transform hover:scale-105 ${votedItemId === headline.id
-                                                ? 'animate-pulse bg-yellow-500 text-black border-2 border-yellow-300 shadow-lg shadow-yellow-500/50 scale-110'
-                                                : hasUserVotedOnItem(headline.id)
-                                                    ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/50'
-                                                    : 'bg-gray-800 hover:bg-red-900 text-red-400 border-2 border-red-800 hover:border-red-600'
+                                            ? 'animate-pulse bg-yellow-500 text-black border-2 border-yellow-300 shadow-lg shadow-yellow-500/50 scale-110'
+                                            : hasUserVotedOnItem(headline.id)
+                                                ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/50'
+                                                : 'bg-gray-800 hover:bg-red-900 text-red-400 border-2 border-red-800 hover:border-red-600'
                                             }`}
                                     >
                                         {votedItemId === headline.id ? (
@@ -287,23 +364,33 @@ export default function NewsPage() {
                         <div className="text-center">
                             {/* Vote Weight Progress */}
                             <div className="mb-3">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <Zap className="w-4 h-4 text-yellow-400" />
-                                    <span className="text-yellow-400 font-mono text-sm">
+                                <div className={`flex items-center justify-center gap-2 mb-2 transition-all duration-500 ${animateVoteWeight ? 'scale-110 animate-pulse' : ''
+                                    }`}>
+                                    <Zap className={`w-4 h-4 text-yellow-400 transition-all duration-500 ${animateVoteWeight ? 'animate-spin text-red-400' : ''
+                                        }`} />
+                                    <span className={`text-yellow-400 font-mono text-sm transition-all duration-500 ${animateVoteWeight ? 'text-red-400 text-lg font-bold' : ''
+                                        }`}>
                                         VOTE WEIGHT: {currentVoteWeight}x
                                     </span>
+                                    {animateVoteWeight && (
+                                        <span className="text-red-400 font-mono text-xs animate-bounce">
+                                            POWER UP! ⚡
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Progress Bar */}
                                 <div className="w-full bg-gray-800 rounded-full h-2 mb-1">
                                     <div
-                                        className="bg-gradient-to-r from-red-500 to-yellow-500 h-2 rounded-full transition-all duration-500"
+                                        className={`bg-gradient-to-r from-red-500 to-yellow-500 h-2 rounded-full transition-all duration-500 ${animateVoteWeight ? 'animate-pulse shadow-lg shadow-red-500/50' : ''
+                                            }`}
                                         style={{ width: `${(progress.current / progress.max) * 100}%` }}
                                     ></div>
                                 </div>
 
                                 {/* Progress Text */}
-                                <p className="text-gray-400 font-mono text-xs">
+                                <p className={`font-mono text-xs transition-all duration-500 ${animateVoteWeight ? 'text-red-400 font-bold animate-bounce' : 'text-gray-400'
+                                    }`}>
                                     {progress.nextWeight ?
                                         `${progress.current}/${progress.max} to ${progress.nextWeight}x weight` :
                                         'MAX VOTE WEIGHT ACHIEVED!'
