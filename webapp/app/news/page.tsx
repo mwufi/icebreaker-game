@@ -40,6 +40,28 @@ interface HeadlineItem {
     author?: any;
 }
 
+// Function to count votes based on voter weights
+const countVotes = (votes: any[]): number => {
+    const total = votes.reduce((sum, vote) => {
+        const voteWeight = vote.voter?.[0].voteWeight || 1; // Default to 1 if no weight
+        return sum + voteWeight;
+    }, 0);
+
+    if (votes && votes.length) {
+        console.log("votes:", votes)
+        console.log('Vote calculation:', {
+            voteCount: votes.length,
+            weightedTotal: total,
+            voters: votes.map(v => ({
+                voterId: v.voter?.[0].id,
+                weight: v.voter?.[0].voteWeight || 1
+            }))
+        });
+    }
+
+    return total;
+};
+
 export default function NewsPage() {
     const { user } = useUser();
     const [currentView, setCurrentView] = useState<'voting' | 'leaderboard'>('voting');
@@ -99,7 +121,9 @@ export default function NewsPage() {
     const hasUserVotedOnItem = (itemId: string) => {
         if (!currentProfile) return false;
         const voteKey = `${currentProfile.id}-${itemId}`;
-        return userVotes.some(vote => vote.key === voteKey);
+        const hasVoted = userVotes.some(vote => vote.key === voteKey);
+
+        return hasVoted;
     };
 
     // Transform headlines data
@@ -114,6 +138,21 @@ export default function NewsPage() {
     // Debug logging
     console.log("Contest data:", contest);
     console.log("Headlines with authors:", headlines.map(h => ({ text: h.text.substring(0, 30), author: h.author })));
+    console.log("Current profile:", currentProfile);
+    console.log("User votes data:", userVotesData);
+    console.log("User votes:", userVotes);
+    console.log("User voted IDs:", userVotedIds);
+
+    // Log vote weight calculations for all headlines
+    console.log("=== VOTE WEIGHT CALCULATIONS ===");
+    headlines.forEach(headline => {
+        const weightedVotes = countVotes(headline.votes);
+        console.log(`Headline: "${headline.text.substring(0, 40)}..."`, {
+            rawVoteCount: headline.votes.length,
+            weightedVoteTotal: weightedVotes,
+            difference: weightedVotes - headline.votes.length
+        });
+    });
 
     // Real countdown timer based on contest reveal time
     useEffect(() => {
@@ -255,7 +294,7 @@ export default function NewsPage() {
         ]);
     };
 
-    const sortedHeadlines = [...headlines].sort((a, b) => b.votes.length - a.votes.length);
+    const sortedHeadlines = [...headlines].sort((a, b) => countVotes(b.votes) - countVotes(a.votes));
     const remainingVotes = MAX_VOTES - userVotedIds.length;
 
     // Calculate vote weight progress based on total lifetime votes
@@ -297,7 +336,7 @@ export default function NewsPage() {
                                             }`}>
                                             #{index + 1}
                                         </div>
-                                        <span className="text-red-400 text-xs font-mono">{headline.votes.length}</span>
+                                        <span className="text-red-400 text-xs font-mono">{countVotes(headline.votes)}</span>
                                     </div>
                                     <div className="flex-1">
                                         <p className="mb-2 text-gray-200 text-sm leading-tight">{headline.text}</p>
@@ -402,7 +441,7 @@ export default function NewsPage() {
                                             <ArrowUp className="w-4 h-4" />
                                         )}
                                     </Button>
-                                    <span className="text-red-400 text-xs font-mono">{headline.votes.length}</span>
+                                    <span className="text-red-400 text-xs font-mono">{countVotes(headline.votes)}</span>
                                 </div>
                             </div>
                         </CardContent>
