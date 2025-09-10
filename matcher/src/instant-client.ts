@@ -32,6 +32,7 @@ export async function fetchAllProfiles(): Promise<Profile[]> {
     id: profile.id,
     name: profile.name,
     profileText: profile.profileText || undefined,
+    profileUrl: profile.profilePicUrl,
     preferences: profile.preferences ? {
       lookingFor: profile.preferences.lookingFor,
     } : undefined,

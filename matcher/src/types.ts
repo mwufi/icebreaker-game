@@ -2,6 +2,7 @@ export interface Profile {
   id: string;
   name: string;
   profileText?: string;
+  profileUrl?: string;
   preferences?: {
     lookingFor?: any;
   };
