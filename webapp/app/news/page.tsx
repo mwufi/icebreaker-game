@@ -37,12 +37,13 @@ interface HeadlineItem {
     text: string;
     votes: any[];
     isYours?: boolean;
+    author?: any;
 }
 
 export default function NewsPage() {
     const { user } = useUser();
     const [currentView, setCurrentView] = useState<'voting' | 'leaderboard'>('voting');
-    const [timeUntilReveal, setTimeUntilReveal] = useState('4h 23m');
+    const [timeUntilReveal, setTimeUntilReveal] = useState('Loading...');
     const [showConfetti, setShowConfetti] = useState(false);
     const [votedItemId, setVotedItemId] = useState<string | null>(null);
     const [animateVoteWeight, setAnimateVoteWeight] = useState(false);
@@ -56,12 +57,26 @@ export default function NewsPage() {
 
     const currentProfile = profileData?.$users?.[0]?.odfProfile?.[0];
 
-    // Get all headline items with their votes
+    // Get contests to find the ODF Hack Demo contest
+    const { data: contestsData } = db.useQuery({
+        contests: {
+            $: {
+                where: {
+                    name: "ODF Hack Demo"
+                }
+            }
+        }
+    });
+
+    const contest = contestsData?.contests?.[0];
+
+    // Get all headline items with their votes and potential author
     const { data: headlinesData } = db.useQuery({
         headlineItems: {
             votes: {
                 voter: {}
-            }
+            },
+            author: {}
         }
     });
 
@@ -92,22 +107,45 @@ export default function NewsPage() {
         id: item.id,
         text: item.text,
         votes: item.votes || [],
-        isYours: false // We'll determine this based on the author if needed
+        isYours: item.author?.id === currentProfile?.id,
+        author: item.author
     }));
 
-    // Mock countdown timer
+    // Real countdown timer based on contest reveal time
     useEffect(() => {
-        const timer = setInterval(() => {
-            // This would be a real countdown in production
-            const times = ['4h 22m', '4h 21m', '4h 20m', '4h 19m'];
-            setTimeUntilReveal(prev => {
-                const currentIndex = times.indexOf(prev);
-                return currentIndex < times.length - 1 ? times[currentIndex + 1] : '4h 19m';
-            });
-        }, 60000);
+        if (!contest?.revealTime) {
+            setTimeUntilReveal('No contest found');
+            return;
+        }
+
+        const updateCountdown = () => {
+            const now = new Date();
+            const revealTime = new Date(contest.revealTime);
+            const diff = revealTime.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeUntilReveal('REVEALED!');
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            if (hours > 0) {
+                setTimeUntilReveal(`${hours}h ${minutes}m`);
+            } else if (minutes > 0) {
+                setTimeUntilReveal(`${minutes}m ${seconds}s`);
+            } else {
+                setTimeUntilReveal(`${seconds}s`);
+            }
+        };
+
+        updateCountdown();
+        const timer = setInterval(updateCountdown, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [contest]);
 
     const handleVote = (headlineId: string) => {
         if (!currentProfile || userVotedIds.length >= MAX_VOTES || hasUserVotedOnItem(headlineId)) {
@@ -221,6 +259,11 @@ export default function NewsPage() {
     const currentVoteWeight = getVoteWeight(totalLifetimeVotes);
     const progress = getVoteWeightProgress(totalLifetimeVotes);
 
+    // Determine if we should show names
+    const currentTime = new Date();
+    const revealTime = contest?.revealTime ? new Date(contest.revealTime) : null;
+    const shouldShowNames = contest?.showNames || (revealTime && currentTime >= revealTime);
+
     if (currentView === 'leaderboard') {
         return (
             <div className="min-h-screen bg-black">
@@ -254,7 +297,9 @@ export default function NewsPage() {
                                     <div className="flex-1">
                                         <p className="mb-2 text-gray-200 text-sm leading-tight">{headline.text}</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-gray-400 text-xs font-mono">ANONYMOUS</span>
+                                            <span className="text-gray-400 text-xs font-mono">
+                                                {shouldShowNames && headline.author?.name ? headline.author.name : 'ANONYMOUS'}
+                                            </span>
                                             {headline.isYours && (
                                                 <Badge className="ml-auto bg-red-600 text-white border-none text-xs font-mono">YOU</Badge>
                                             )}
@@ -327,7 +372,9 @@ export default function NewsPage() {
                                 <div className="flex-1">
                                     <p className="text-gray-200 text-sm leading-tight mb-1">{headline.text}</p>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500 text-xs font-mono">ANONYMOUS</span>
+                                        <span className="text-gray-500 text-xs font-mono">
+                                            {shouldShowNames && headline.author?.name ? headline.author.name : 'ANONYMOUS'}
+                                        </span>
                                     </div>
                                 </div>
 

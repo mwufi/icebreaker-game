@@ -26,6 +26,11 @@ const _schema = i.schema({
       tags: i.string().optional(),
     }),
     aiNotes: i.entity({}),
+    contests: i.entity({
+      name: i.string().unique().indexed(),
+      revealTime: i.date().indexed(),
+      showNames: i.boolean().optional(),
+    }),
     dailyConnections: i.entity({
       accepted: i.boolean().optional(),
       date: i.date().indexed(),
