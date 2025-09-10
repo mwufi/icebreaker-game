@@ -3,7 +3,7 @@
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
-  // We inferred 11 attributes!
+  // We inferred 12 attributes!
   // Take a look at this schema, and if everything looks good,
   // run `push schema` again to enforce the types.
   entities: {
@@ -34,13 +34,17 @@ const _schema = i.schema({
       text: i.string(),
     }),
     gameCompletions: i.entity({
+      audioFilePath: i.string().optional(),
       completedAt: i.date().indexed().optional(),
       gameType: i.string().indexed().optional(),
-      audioFilePath: i.string().optional(),
     }),
     groups: i.entity({
       name: i.string().indexed(),
     }),
+    headlineItems: i.entity({
+      text: i.string(),
+    }),
+    headlineItemVotes: i.entity({}),
     inviteLink: i.entity({
       code: i.string().unique().indexed(),
       createdAt: i.number().optional(),
@@ -72,6 +76,7 @@ const _schema = i.schema({
       profileText: i.string().optional(),
       tagline: i.string().optional(),
       values: i.string().optional(),
+      voteWeight: i.number().optional(),
     }),
     users: i.entity({
       hasSeenTutorial: i.boolean().optional(),
@@ -155,11 +160,11 @@ const _schema = i.schema({
     gameCompletionsProfile: {
       forward: {
         on: "gameCompletions",
-        has: "one",
+        has: "many",
         label: "profile",
       },
       reverse: {
-        on: "profiles",
+        on: "profile",
         has: "many",
         label: "gameCompletions",
       },
@@ -174,6 +179,30 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "groups",
+      },
+    },
+    headlineItemVotesItem: {
+      forward: {
+        on: "headlineItemVotes",
+        has: "one",
+        label: "item",
+      },
+      reverse: {
+        on: "headlineItems",
+        has: "many",
+        label: "votes",
+      },
+    },
+    headlineItemVotesVoter: {
+      forward: {
+        on: "headlineItemVotes",
+        has: "one",
+        label: "voter",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "votes",
       },
     },
     inviteLinkIntendedInvitee: {
