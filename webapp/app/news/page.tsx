@@ -107,9 +107,13 @@ export default function NewsPage() {
         id: item.id,
         text: item.text,
         votes: item.votes || [],
-        isYours: item.author?.id === currentProfile?.id,
-        author: item.author
+        isYours: item.author?.[0]?.id === currentProfile?.id,
+        author: item.author?.[0]
     }));
+
+    // Debug logging
+    console.log("Contest data:", contest);
+    console.log("Headlines with authors:", headlines.map(h => ({ text: h.text.substring(0, 30), author: h.author })));
 
     // Real countdown timer based on contest reveal time
     useEffect(() => {
@@ -300,6 +304,7 @@ export default function NewsPage() {
                                         <div className="flex items-center gap-2">
                                             <span className="text-gray-400 text-xs font-mono">
                                                 {shouldShowNames && headline.author?.name ? headline.author.name : 'ANONYMOUS'}
+                                                {/* Debug: {shouldShowNames ? `(show: ${headline.author?.name || 'no name'})` : '(hidden)'} */}
                                             </span>
                                             {headline.isYours && (
                                                 <Badge className="ml-auto bg-red-600 text-white border-none text-xs font-mono">YOU</Badge>
