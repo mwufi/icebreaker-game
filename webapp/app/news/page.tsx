@@ -47,19 +47,27 @@ const countVotes = (votes: any[]): number => {
         return sum + voteWeight;
     }, 0);
 
-    if (votes && votes.length) {
-        console.log("votes:", votes)
-        console.log('Vote calculation:', {
-            voteCount: votes.length,
-            weightedTotal: total,
-            voters: votes.map(v => ({
-                voterId: v.voter?.[0].id,
-                weight: v.voter?.[0].voteWeight || 1
-            }))
-        });
-    }
+    // if (votes && votes.length) {
+    //     console.log("votes:", votes)
+    //     console.log('Vote calculation:', {
+    //         voteCount: votes.length,
+    //         weightedTotal: total,
+    //         voters: votes.map(v => ({
+    //             voterId: v.voter?.[0].id,
+    //             weight: v.voter?.[0].voteWeight || 1
+    //         }))
+    //     });
+    // }
 
     return total;
+};
+
+// Function to count only current user's votes
+const countUserVotes = (votes: any[], currentProfileId: string | undefined): number => {
+    if (!currentProfileId) return 0;
+    
+    const userVotes = votes.filter(vote => vote.voter?.[0]?.id === currentProfileId);
+    return userVotes.length; // Just return count, not weighted, for user's own votes display
 };
 
 export default function NewsPage() {
@@ -142,17 +150,6 @@ export default function NewsPage() {
     console.log("User votes data:", userVotesData);
     console.log("User votes:", userVotes);
     console.log("User voted IDs:", userVotedIds);
-
-    // Log vote weight calculations for all headlines
-    console.log("=== VOTE WEIGHT CALCULATIONS ===");
-    headlines.forEach(headline => {
-        const weightedVotes = countVotes(headline.votes);
-        console.log(`Headline: "${headline.text.substring(0, 40)}..."`, {
-            rawVoteCount: headline.votes.length,
-            weightedVoteTotal: weightedVotes,
-            difference: weightedVotes - headline.votes.length
-        });
-    });
 
     // Real countdown timer based on contest reveal time
     useEffect(() => {
@@ -441,7 +438,7 @@ export default function NewsPage() {
                                             <ArrowUp className="w-4 h-4" />
                                         )}
                                     </Button>
-                                    <span className="text-red-400 text-xs font-mono">{countVotes(headline.votes)}</span>
+                                    <span className="text-red-400 text-xs font-mono">{countUserVotes(headline.votes, currentProfile?.id)}</span>
                                 </div>
                             </div>
                         </CardContent>
