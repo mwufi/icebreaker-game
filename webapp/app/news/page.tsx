@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Trophy, Clock, Zap } from 'lucide-react';
+import { ArrowUp, Trophy, Clock, Zap, ArrowLeft } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import JSConfetti from 'js-confetti';
@@ -317,8 +317,20 @@ export default function NewsPage() {
     if (currentView === 'leaderboard') {
         return (
             <div className="min-h-screen bg-black">
+                {/* Back Button */}
+                <div className="absolute top-2 left-2 z-10">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentView('voting')}
+                        className="h-8 w-8 p-0 bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white border border-gray-600"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                </div>
+
                 {/* Header */}
-                <div className="border-b border-red-900/50 bg-gray-900">
+                <div className="border-b border-red-900/50 bg-gray-900 pt-12">
                     <div className="max-w-4xl mx-auto px-4 py-4">
                         <div className="flex items-center gap-3 mb-1">
                             <Trophy className="w-5 h-5 text-red-400" />
@@ -383,6 +395,18 @@ export default function NewsPage() {
 
     return (
         <div className="min-h-screen bg-black relative">
+            {/* Back Button */}
+            <div className="absolute top-3 left-4 z-10">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.history.back()}
+                    className="h-8 w-8 p-0 bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white border border-gray-600"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                </Button>
+            </div>
+
             {/* Confetti Animation */}
             {showConfetti && (
                 <div className="fixed inset-0 pointer-events-none z-50">
@@ -404,7 +428,7 @@ export default function NewsPage() {
                 </div>
             )}
             {/* Header */}
-            <div className="border-b border-red-900/50 bg-gray-900">
+            <div className="border-b border-red-900/50 bg-gray-900 pt-12">
                 <div className="max-w-4xl mx-auto px-4 py-4">
                     <h1 className="mb-1 text-red-400 text-lg font-mono">{DAILY_PROMPT}</h1>
                     <div className="flex items-center gap-2 text-gray-400 text-sm">
