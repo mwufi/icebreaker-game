@@ -159,10 +159,10 @@ function DashboardContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-3">
                       <h3 className="text-xl md:text-3xl font-[family-name:var(--font-merriweather)] text-white">
-                        60 Second Challenge
+                        Access level 2
                       </h3>
                       <p className="text-white/90">
-                        Answer today’s prompts for better matches tomorrow
+                        If you haven't already, answer today's prompts for better matches tomorrow
                       </p>
                     </div>
                     <div className="hidden md:block">
