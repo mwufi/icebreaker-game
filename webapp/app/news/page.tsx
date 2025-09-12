@@ -49,7 +49,7 @@ interface HeadlineItem {
 // Function to count votes based on voter weights
 const countVotes = (votes: any[]): number => {
     const total = votes.reduce((sum, vote) => {
-        const voteWeight = vote.voter?.[0].voteWeight || 1; // Default to 1 if no weight
+        const voteWeight = vote.voter?.[0]?.voteWeight || 1; // Default to 1 if no weight
         return sum + voteWeight;
     }, 0);
     return total;
