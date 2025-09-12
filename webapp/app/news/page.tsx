@@ -6,10 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Trophy, Clock, Zap, ArrowLeft } from 'lucide-react';
+import { ArrowUp, Trophy, Clock, Zap, ArrowLeft, HelpCircle } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import JSConfetti from 'js-confetti';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 const DAILY_PROMPT = "What happens when founders' wildest startup dreams become tomorrow's reality?";
 const REVEAL_TIME = "6:00 PM";
@@ -63,6 +70,7 @@ export default function NewsPage() {
     const [showConfetti, setShowConfetti] = useState(false);
     const [votedItemId, setVotedItemId] = useState<string | null>(null);
     const [animateVoteWeight, setAnimateVoteWeight] = useState(false);
+    const [showHelpDialog, setShowHelpDialog] = useState(false);
 
     // Get current user's profile using the auth user
     const { data: profileData } = db.useQuery({
@@ -314,6 +322,14 @@ export default function NewsPage() {
     const shouldShowNames = contest?.showNames || (revealTime && currentTime >= revealTime);
     console.log("shouldShowNames", shouldShowNames)
 
+    // Check if user has seen help dialog before
+    useEffect(() => {
+        const hasSeenHelp = localStorage.getItem('newsPageHelpSeen');
+        if (!hasSeenHelp) {
+            setShowHelpDialog(true);
+        }
+    }, []);
+
     if (currentView === 'leaderboard') {
         return (
             <div className="min-h-screen bg-black">
@@ -434,6 +450,14 @@ export default function NewsPage() {
                     <div className="flex items-center gap-2 text-gray-400 text-sm">
                         <Clock className="w-4 h-4" />
                         <span>REVEAL IN {timeUntilReveal}</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowHelpDialog(true)}
+                            className="h-6 w-6 p-0 hover:bg-gray-700/50 text-gray-400 hover:text-white"
+                        >
+                            <HelpCircle className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -537,6 +561,36 @@ export default function NewsPage() {
                 {/* Bottom padding to account for fixed footer */}
                 <div className="h-32"></div>
             </div>
+
+            {/* Help Dialog */}
+            <Dialog open={showHelpDialog} onOpenChange={(open) => {
+                setShowHelpDialog(open);
+                if (!open) {
+                    localStorage.setItem('newsPageHelpSeen', 'true');
+                }
+            }}>
+                <DialogContent className="bg-gray-900 border-gray-700 text-gray-200 max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-400 text-xl font-mono">RULES</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 text-gray-300">
+                        <p>• You have 15 votes to select the funniest headlines of the cohort</p>
+                        <p>• The more you vote, the more your votes count</p>
+                        <p>• Winners with the funniest headlines will be revealed at 6PM PT. We'll a drink for the top 3 at Interval.</p>
+                    </div>
+                    <div className="mt-6">
+                        <Button
+                            onClick={() => {
+                                setShowHelpDialog(false);
+                                localStorage.setItem('newsPageHelpSeen', 'true');
+                            }}
+                            className="w-full bg-red-600 hover:bg-red-500 text-white font-mono"
+                        >
+                            START VOTING
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
