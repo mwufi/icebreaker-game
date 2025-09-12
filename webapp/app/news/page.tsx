@@ -27,7 +27,7 @@ const TARGET_VOTES = 10;
 const getVoteWeight = (totalVotes: number): number => {
     if (totalVotes >= 1 && totalVotes <= 3) return 1;
     if (totalVotes >= 4 && totalVotes <= 6) return 2;
-    if (totalVotes >= 7 && totalVotes <= 10) return 3;
+    if (totalVotes >= 7) return 3;
     return 1; // Default
 };
 
