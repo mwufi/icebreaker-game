@@ -6,6 +6,7 @@ import { ClerkSignedInComponent } from '@/components/auth/ClerkAuth';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
 import Link from 'next/link';
+import { useClerk } from '@clerk/nextjs';
 import {
   MessageSquare,
   Target,
@@ -25,6 +26,7 @@ import { Onboarding } from '@/components/onboarding/Onboarding';
 
 function ProfileContent() {
   const { user } = db.useAuth();
+  const { signOut } = useClerk();
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -525,6 +527,38 @@ function ProfileContent() {
                 </AnimatePresence>
               </div>
             )}
+          </motion.div>
+
+          {/* Account Actions Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 space-y-4"
+          >
+            <div className="flex items-center gap-2 text-white/60">
+              <User className="h-5 w-5" />
+              <h2 className="text-lg font-medium">Account</h2>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={async () => {
+                  try {
+                    // First sign out of Instant to clear the Instant session
+                    await db.auth.signOut();
+                    // Then sign out of Clerk to clear the Clerk session
+                    await signOut();
+                  } catch (error) {
+                    console.error('Error signing out:', error);
+                  }
+                }}
+                className="w-full px-6 py-3 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-red-400 hover:text-red-300 text-sm transition-all flex items-center justify-center gap-2 font-medium"
+              >
+                <X className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
           </motion.div>
 
           {/* Footer Links */}
