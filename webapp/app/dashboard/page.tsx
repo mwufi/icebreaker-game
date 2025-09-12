@@ -145,14 +145,15 @@ function DashboardContent() {
 
           {/* Game Card */}
           <CardCTA
+            title="2030 Future Headlines"
+            description="Vote on the most important headlines of the future"
+            href="/news"
+          />
+          <CardCTA
             title="Access level 2"
             description="If you haven't already, answer today's prompts for better matches tomorrow"
             href="/games/1"
-          /> <CardCTA
-          title="Access level 2"
-          description="If you haven't already, answer today's prompts for better matches tomorrow"
-          href="/games/1"
-        />
+          />
 
           {/* Connections Section - Full Width */}
           <motion.section
