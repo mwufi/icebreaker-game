@@ -330,6 +330,13 @@ export default function NewsPage() {
         }
     }, []);
 
+    // Scroll to top when switching to leaderboard view
+    useEffect(() => {
+        if (currentView === 'leaderboard') {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [currentView]);
+
     if (currentView === 'leaderboard') {
         return (
             <div className="min-h-screen bg-black">
@@ -364,7 +371,7 @@ export default function NewsPage() {
                                 <div className="flex items-start gap-3">
                                     <div className="flex flex-col items-center gap-1">
                                         <div className={`w-8 h-8 rounded border-2 flex items-center justify-center text-xs font-mono ${index === 0 ? 'bg-red-600 border-red-400 text-white' :
-                                            index === 1 ? 'bg-gray-700 border-gray-500 text-gray-300' :
+                                            index === 1 ? 'bg-orange-700 border-orange-500 text-orange-100' :
                                                 index === 2 ? 'bg-amber-800 border-amber-600 text-amber-200' :
                                                     'bg-gray-800 border-gray-600 text-gray-400'
                                             }`}>
