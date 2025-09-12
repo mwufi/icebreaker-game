@@ -9,7 +9,6 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowUp, Trophy, Clock, Zap } from 'lucide-react';
 import { db } from '@/lib/instantdb';
 import { id } from '@instantdb/react';
-import { useUser } from '@clerk/nextjs';
 import JSConfetti from 'js-confetti';
 
 const DAILY_PROMPT = "What happens when founders' wildest startup dreams become tomorrow's reality?";
@@ -46,41 +45,33 @@ const countVotes = (votes: any[]): number => {
         const voteWeight = vote.voter?.[0].voteWeight || 1; // Default to 1 if no weight
         return sum + voteWeight;
     }, 0);
-
-    // if (votes && votes.length) {
-    //     console.log("votes:", votes)
-    //     console.log('Vote calculation:', {
-    //         voteCount: votes.length,
-    //         weightedTotal: total,
-    //         voters: votes.map(v => ({
-    //             voterId: v.voter?.[0].id,
-    //             weight: v.voter?.[0].voteWeight || 1
-    //         }))
-    //     });
-    // }
-
     return total;
 };
 
 // Function to count only current user's votes
 const countUserVotes = (votes: any[], currentProfileId: string | undefined): number => {
     if (!currentProfileId) return 0;
-    
     const userVotes = votes.filter(vote => vote.voter?.[0]?.id === currentProfileId);
+    console.log("the user voted like", userVotes)
     return userVotes.length; // Just return count, not weighted, for user's own votes display
 };
 
 export default function NewsPage() {
-    const { user } = useUser();
+    const { user } = db.useAuth();
     const [currentView, setCurrentView] = useState<'voting' | 'leaderboard'>('voting');
     const [timeUntilReveal, setTimeUntilReveal] = useState('Loading...');
     const [showConfetti, setShowConfetti] = useState(false);
     const [votedItemId, setVotedItemId] = useState<string | null>(null);
     const [animateVoteWeight, setAnimateVoteWeight] = useState(false);
 
-    // Get current user's profile
+    // Get current user's profile using the auth user
     const { data: profileData } = db.useQuery({
         $users: {
+            $: {
+                where: {
+                    id: user?.id || ''
+                }
+            },
             odfProfile: {}
         }
     });
@@ -110,19 +101,19 @@ export default function NewsPage() {
         }
     });
 
-    // Get user's votes to track what they've already voted on
-    const { data: userVotesData } = db.useQuery({
+
+    // Get all votes and filter client-side for current user
+    const { data: allVotesData } = db.useQuery({
         headlineItemVotes: {
-            $: {
-                where: {
-                    voter: currentProfile?.id
-                }
-            },
+            voter: {},
             item: {}
         }
     });
 
-    const userVotes = userVotesData?.headlineItemVotes || [];
+    // Filter votes to only show current user's votes
+    const userVotes = (allVotesData?.headlineItemVotes || []).filter(
+        vote => vote.voter?.[0]?.id === currentProfile?.id
+    );
     const userVotedIds = userVotes.map((vote: any) => vote.item?.id).filter(Boolean);
 
     // Helper function to check if user has voted on an item
@@ -144,12 +135,7 @@ export default function NewsPage() {
     }));
 
     // Debug logging
-    console.log("Contest data:", contest);
     console.log("Headlines with authors:", headlines.map(h => ({ text: h.text.substring(0, 30), author: h.author })));
-    console.log("Current profile:", currentProfile);
-    console.log("User votes data:", userVotesData);
-    console.log("User votes:", userVotes);
-    console.log("User voted IDs:", userVotedIds);
 
     // Real countdown timer based on contest reveal time
     useEffect(() => {
@@ -188,12 +174,35 @@ export default function NewsPage() {
     }, [contest]);
 
     const handleVote = (headlineId: string) => {
-        if (!currentProfile || userVotedIds.length >= MAX_VOTES || hasUserVotedOnItem(headlineId)) {
+        if (!currentProfile) return;
+
+        const voteKey = `${currentProfile.id}-${headlineId}`;
+        console.log("voteKey", voteKey);
+
+        // Check if already voted - if so, unvote
+        if (hasUserVotedOnItem(headlineId)) {
+            // Find the vote to delete
+            const voteToDelete = userVotes.find(vote => vote.key === voteKey);
+            if (!voteToDelete) return;
+
+            // Calculate new vote weight after removing vote
+            const newTotalVotes = Math.max(0, userVotes.length - 1);
+            const newVoteWeight = getVoteWeight(newTotalVotes);
+
+            // Delete the vote and update profile vote weight
+            db.transact([
+                db.tx.headlineItemVotes[voteToDelete.id].delete(),
+                db.tx.profiles[currentProfile.id].update({
+                    voteWeight: newVoteWeight
+                })
+            ]);
             return;
         }
 
-        // Create a unique key for this vote
-        const voteKey = `${currentProfile.id}-${headlineId}`;
+        // Can't vote if at max votes
+        if (userVotedIds.length >= MAX_VOTES) {
+            return;
+        }
 
         // Calculate new vote weight based on total lifetime votes
         const currentTotalVotes = userVotes.length; // Total votes from database
