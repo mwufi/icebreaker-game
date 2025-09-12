@@ -34,8 +34,8 @@ const getVoteWeight = (totalVotes: number): number => {
 const getVoteWeightProgress = (totalVotes: number) => {
     if (totalVotes <= 3) return { current: totalVotes, max: 3, nextWeight: 2 };
     if (totalVotes <= 6) return { current: totalVotes - 3, max: 3, nextWeight: 3 };
-    if (totalVotes <= 10) return { current: totalVotes - 6, max: 4, nextWeight: null };
-    return { current: 0, max: 0, nextWeight: null };
+    // For 7+ votes, they're at max weight (3x)
+    return { current: 4, max: 4, nextWeight: null }; // Show full progress bar at max
 };
 
 interface HeadlineItem {
